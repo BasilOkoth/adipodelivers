@@ -4,47 +4,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#080b10">
-  <title>{{ tenant.display_name }} TV</title>
+  <meta name="theme-color" content="#07090d">
+  <title>Adipo Delivers TV</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'impact/css/tv.css' %}">
-  <style>
-    :root{--brand-primary:{{ tenant.primary_color|default:'#11151c' }};--brand-accent:{{ tenant.accent_color|default:'#d61f26' }};}
-  </style>
+  <style>:root{--accent:{{ tenant.accent_color|default:'#d71920' }};}</style>
 </head>
 <body>
-<div class="tv-shell">
-  <header class="tv-top">
-    <div class="tv-brand">
-      <div class="tv-brand-badge{% if not tenant.logo %} fallback{% endif %}">
+<div class="broadcast-shell">
+  <header class="broadcast-header">
+    <div class="brand-lockup">
+      <div class="brand-logo-wrap">
         {% if tenant.logo %}
-          <img class="tv-logo" src="{{ tenant.logo.url }}" alt="{{ tenant.display_name }} logo" onerror="this.style.display='none'; this.parentElement.classList.add('fallback');">
+          <img class="brand-logo" src="{{ tenant.logo.url }}" alt="Logo" onerror="this.style.display='none';this.parentElement.classList.add('fallback')">
         {% endif %}
-        <span class="brand-mark-fallback">{{ tenant.brand_mark }}</span>
+        <span class="brand-fallback">AD</span>
       </div>
-      <div>
-        <b>{{ tenant.display_name|upper }}</b>
-        <small>IMPACT UPDATE CHANNEL</small>
+      <div class="brand-copy">
+        <strong>ADIPO DELIVERS</strong>
+        <span>KARACHUONYO CONSTITUENCY IMPACT</span>
       </div>
     </div>
-    <div class="top-right">
-      {% if tenant.tv_show_website %}<div class="web-cta"><span>READ THE FULL RECORD</span><b>{{ tenant.public_domain }}</b></div>{% endif %}
-      {% if tenant.tv_show_qr %}<img class="top-qr" src="{% url 'tenant-qr' %}" alt="QR code">{% endif %}
-      {% if tenant.tv_show_clock %}<div class="clock" id="clock"></div>{% endif %}
+    <div class="header-actions">
+      {% if tenant.tv_show_website %}
+      <div class="website-block"><span>READ THE FULL RECORD</span><strong>{{ tenant.public_domain|default:'adipodelivers.org' }}</strong></div>
+      {% endif %}
+      {% if tenant.tv_show_qr %}<img class="header-qr" src="{% url 'tenant-qr' %}" alt="QR code">{% endif %}
+      {% if tenant.tv_show_clock %}<div class="header-clock" id="clock"></div>{% endif %}
     </div>
   </header>
 
   <main id="stage"><div class="loading">Loading impact channel…</div></main>
 
-  <footer class="tv-bottom">
-    <span class="live"><span class="live-dot"></span> IMPACT LIVE</span>
-    {% if tenant.tv_show_ticker %}<div class="ticker"><div>{{ tenant.tv_ticker_text|default:'Projects • Locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div></div>{% endif %}
-    <div class="progress"><span id="progressBar"></span></div>
-    <span id="slideNo">— / —</span>
+  <footer class="broadcast-footer">
+    <div class="live-chip"><span class="live-dot"></span><strong>IMPACT LIVE</strong></div>
+    {% if tenant.tv_show_ticker %}
+      <div class="ticker"><div>{{ tenant.tv_ticker_text|default:'Projects • Photos • Videos • Locations • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain|default:'adipodelivers.org' }}{% endif %} •</div></div>
+    {% endif %}
+    <div class="slide-progress"><span id="progressBar"></span></div>
+    <div class="slide-count" id="slideNo">— / —</div>
   </footer>
 </div>
+
 <script>
 window.TV_PLAYLIST_URL="{% url 'tv-playlist-api' %}?lang={{ lang_mode }}";
 window.TV_LANGUAGE_MODE="{{ lang_mode }}";
