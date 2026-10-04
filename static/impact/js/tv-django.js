@@ -28,7 +28,6 @@ function videoSlide(p,m,b){
         ${caption}
         <div class="clip-route">PROJECT SITE · ${esc(trim(locationLabel(p),140))}</div>
       </div>
-      ${m.show_location?`<div class="location-lowerthird"><small>📍 VIDEO LOCATION</small><b>${esc(trim(loc,90))}</b></div>`:''}
       ${statusBadge(p,b)}
     </section>`
   }
@@ -36,20 +35,25 @@ function videoSlide(p,m,b){
 
 function imageSlide(p,m,b){
   const title=bi(p.short_title,p.short_title_local,'h2',95);
-  const caption=bi(m.caption||p.summary,m.caption_local||p.summary_local,'p',120);
+  const caption=bi(m.caption||p.summary,m.caption_local||p.summary_local,'p',110);
   const loc=pick(m.location||p.location,m.location_local||p.location_local);
+  const ward=wardLabel(p);
+  const constituency=b.jurisdiction||'';
   return {
     duration:Math.max(9000,(m.duration||12)*1000),
     html:`<section class="slide image-slide">
-      <img class="story-image" src="${esc(m.url)}" alt="${esc(m.title||p.short_title)}">
+      <img class="story-image" src="${esc(m.url)}" alt="${esc(m.title||p.short_title)}" onerror="this.classList.add('media-error')">
       <div class="image-shade"></div>
-      <div class="video-copy">
-        <div class="eyebrow">${esc(p.sector)} · ${esc(wardLabel(p))}</div>
+      <div class="video-copy photo-copy">
+        <div class="eyebrow">${esc(p.sector)} · ${esc(ward)}</div>
         ${title}
         ${caption}
-        <div class="clip-route">PROJECT SITE · ${esc(trim(locationLabel(p),140))}</div>
+        <ul class="story-bullets">
+          <li><span>Project site</span><b>${esc(trim(loc,90))}</b></li>
+          <li><span>Ward</span><b>${esc(ward)}</b></li>
+          <li><span>Constituency</span><b>${esc(constituency)}</b></li>
+        </ul>
       </div>
-      ${m.show_location?`<div class="location-lowerthird"><small>📍 PHOTO LOCATION</small><b>${esc(trim(loc,90))}</b></div>`:''}
       ${statusBadge(p,b)}
     </section>`
   }

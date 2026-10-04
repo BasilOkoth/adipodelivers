@@ -18,7 +18,12 @@
 <div class="tv-shell">
   <header class="tv-top">
     <div class="tv-brand">
-      {% if tenant.logo %}<img class="tv-logo" src="{{ tenant.logo.url }}" alt="{{ tenant.display_name }} logo">{% else %}<span class="brand-mark">{{ tenant.brand_mark }}</span>{% endif %}
+      <div class="tv-brand-badge{% if not tenant.logo %} fallback{% endif %}">
+        {% if tenant.logo %}
+          <img class="tv-logo" src="{{ tenant.logo.url }}" alt="{{ tenant.display_name }} logo" onerror="this.style.display='none'; this.parentElement.classList.add('fallback');">
+        {% endif %}
+        <span class="brand-mark-fallback">{{ tenant.brand_mark }}</span>
+      </div>
       <div>
         <b>{{ tenant.display_name|upper }}</b>
         <small>IMPACT UPDATE CHANNEL</small>
@@ -34,7 +39,7 @@
   <main id="stage"><div class="loading">Loading impact channel…</div></main>
 
   <footer class="tv-bottom">
-    <span class="live">● IMPACT LIVE</span>
+    <span class="live"><span class="live-dot"></span> IMPACT LIVE</span>
     {% if tenant.tv_show_ticker %}<div class="ticker"><div>{{ tenant.tv_ticker_text|default:'Projects • Locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div></div>{% endif %}
     <div class="progress"><span id="progressBar"></span></div>
     <span id="slideNo">— / —</span>
