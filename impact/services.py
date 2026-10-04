@@ -13,7 +13,7 @@ def submit_mediaconvert_job(media):
     import boto3
     bucket=settings.AWS_STORAGE_BUCKET_NAME
     stem=PurePosixPath(media.original_s3_key).stem
-    out_prefix=f"processed/{media.project.record_id}/{media.pk}/{stem}"
+    out_prefix=f"tenants/{media.project.tenant.slug}/processed/{media.project.record_id}/{media.pk}/{stem}"
     mc=boto3.client('mediaconvert', region_name=settings.AWS_S3_REGION_NAME)
     job={
       'Role': settings.AWS_MEDIACONVERT_ROLE_ARN,

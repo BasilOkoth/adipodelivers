@@ -3,56 +3,36 @@ services:
     name: adipodelivers
     runtime: python
     plan: starter
-
     buildCommand: >
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput
-
     preDeployCommand: >
       python manage.py migrate &&
       python manage.py seed_demo
-
     startCommand: gunicorn config.wsgi:application
-
     envVars:
       - key: DJANGO_DEBUG
         value: "0"
-
       - key: DJANGO_SECRET_KEY
         generateValue: true
-
       - key: DATABASE_URL
         fromDatabase:
           name: adipodelivers-db
           property: connectionString
-
       - key: DJANGO_ALLOWED_HOSTS
         value: adipodelivers.onrender.com,adipodelivers.org,www.adipodelivers.org
-
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
         value: https://adipodelivers.onrender.com,https://adipodelivers.org,https://www.adipodelivers.org
-
       - key: AWS_STORAGE_BUCKET_NAME
-        sync: false
-
+        value: adipodelivers-media-okoth
+      - key: AWS_S3_REGION_NAME
+        value: eu-north-1
       - key: AWS_ACCESS_KEY_ID
         sync: false
-
       - key: AWS_SECRET_ACCESS_KEY
         sync: false
-
-      - key: AWS_S3_REGION_NAME
-        sync: false
-
-      - key: AWS_CLOUDFRONT_DOMAIN
-        sync: false
-
       - key: AWS_MEDIACONVERT_ROLE_ARN
-        sync: false
-
-      - key: AWS_MEDIACONVERT_QUEUE_ARN
-        sync: false
-
+        value: arn:aws:iam::535659317795:role/MediaConvert_Default_Role
 
 databases:
   - name: adipodelivers-db

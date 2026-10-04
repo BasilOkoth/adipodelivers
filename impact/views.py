@@ -1,24 +1,28 @@
 import re
 from functools import wraps
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.utils.text import slugify
-from .models import Project, Ward, ProjectImpact, ProjectMedia, SourcePost, TenantMembership
+from .models import Project, Ward, ProjectImpact, ProjectMedia, EvidenceDocument, SourcePost, TenantMembership
+from .forms import ProjectForm, ProjectMediaForm, EvidenceForm, WardForm, TenantBrandForm
 from .post_parser import parse_social_post
 
 
 def tenant_staff_required(view_func):
-    @staff_member_required
+    @login_required(login_url='control-login')
     @wraps(view_func)
     def wrapped(request, *args, **kwargs):
         if request.user.is_superuser:
             return view_func(request, *args, **kwargs)
-        if not request.tenant or not TenantMembership.objects.filter(
-            tenant=request.tenant, user=request.user, is_active=True,
+        tenant = getattr(request, 'tenant', None)
+        if not tenant or not TenantMembership.objects.filter(
+            tenant=tenant, user_id=request.user.pk, is_active=True,
             role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.ADMIN, TenantMembership.Role.EDITOR]
         ).exists():
             return HttpResponseForbidden('You do not have editing access to this tenant.')
@@ -241,3 +245,222 @@ def tv_playlist_api(request):
         'wards': [{'en': w.name, 'local': w.name_local} for w in Ward.objects.filter(tenant=tenant)],
         'projects': items,
     })
+
+
+# ============================================================
+# CUSTOM CONTROL CENTRE — separate from Django admin
+# ============================================================
+
+def control_login(request):
+    if request.user.is_authenticated:
+        return redirect('control-dashboard')
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            messages.error(request, 'Invalid username or password.')
+        else:
+            tenant = getattr(request, 'tenant', None)
+            allowed = user.is_superuser or (tenant and TenantMembership.objects.filter(
+                tenant=tenant, user_id=user.pk, is_active=True
+            ).exists())
+            if not allowed:
+                messages.error(request, 'This account does not have access to this workspace.')
+            else:
+                login(request, user)
+                return redirect(request.GET.get('next') or 'control-dashboard')
+    return render(request, 'impact/control/login.html', {'tenant': request.tenant})
+
+
+def control_logout(request):
+    logout(request)
+    return redirect('control-login')
+
+
+def _dashboard_context(request, **extra):
+    tenant = request.tenant
+    projects = Project.objects.filter(tenant=tenant)
+    media = ProjectMedia.objects.filter(project__tenant=tenant)
+    evidence = EvidenceDocument.objects.filter(project__tenant=tenant)
+    ctx = {
+        'tenant': tenant,
+        'project_count': projects.count(),
+        'published_count': projects.filter(published=True).count(),
+        'tv_count': projects.filter(tv_enabled=True, published=True).count(),
+        'verification_count': projects.filter(verification_status=Project.Verification.SUBMITTED).count(),
+        'media_count': media.count(),
+        'evidence_count': evidence.count(),
+        'ward_count': Ward.objects.filter(tenant=tenant).count(),
+        'source_post_count': SourcePost.objects.filter(tenant=tenant).count(),
+    }
+    ctx.update(extra)
+    return ctx
+
+
+@tenant_staff_required
+def control_dashboard(request):
+    tenant = request.tenant
+    projects = Project.objects.filter(tenant=tenant).select_related('ward').order_by('-updated_at')[:6]
+    pending = Project.objects.filter(tenant=tenant, verification_status=Project.Verification.SUBMITTED).select_related('ward')[:6]
+    recent_media = ProjectMedia.objects.filter(project__tenant=tenant).select_related('project').order_by('-id')[:6]
+    return render(request, 'impact/control/dashboard.html', _dashboard_context(
+        request, projects=projects, pending=pending, recent_media=recent_media
+    ))
+
+
+@tenant_staff_required
+def control_projects(request):
+    qs = Project.objects.filter(tenant=request.tenant).select_related('ward')
+    q = request.GET.get('q','').strip()
+    status = request.GET.get('status','').strip()
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(record_id__icontains=q) | Q(project_location__icontains=q))
+    if status:
+        qs = qs.filter(verification_status=status)
+    return render(request, 'impact/control/projects.html', _dashboard_context(request, projects=qs, q=q, status=status))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_project_create(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, tenant=request.tenant)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.tenant = request.tenant
+            if not project.record_id:
+                project.record_id = _next_record_id(request.tenant, project.ward.name, project.sector)
+            project.save()
+            messages.success(request, f'{project.record_id} created.')
+            return redirect('control-project-edit', pk=project.pk)
+    else:
+        form = ProjectForm(tenant=request.tenant)
+    return render(request, 'impact/control/project_form.html', _dashboard_context(request, form=form, mode='create'))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_project_edit(request, pk):
+    project = get_object_or_404(Project, pk=pk, tenant=request.tenant)
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project, tenant=request.tenant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Project updated successfully.')
+            return redirect('control-project-edit', pk=project.pk)
+    else:
+        form = ProjectForm(instance=project, tenant=request.tenant)
+    return render(request, 'impact/control/project_form.html', _dashboard_context(request, form=form, project=project, mode='edit'))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_project_delete(request, pk):
+    project = get_object_or_404(Project, pk=pk, tenant=request.tenant)
+    if request.method == 'POST':
+        title = project.short_title or project.title
+        project.delete()
+        messages.success(request, f'{title} deleted.')
+        return redirect('control-projects')
+    return render(request, 'impact/control/confirm_delete.html', _dashboard_context(request, object=project, object_type='project'))
+
+
+@tenant_staff_required
+def control_media(request):
+    items = ProjectMedia.objects.filter(project__tenant=request.tenant).select_related('project').order_by('-id')
+    return render(request, 'impact/control/media.html', _dashboard_context(request, media_items=items))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_media_create(request):
+    if request.method == 'POST':
+        form = ProjectMediaForm(request.POST, request.FILES, tenant=request.tenant)
+        if form.is_valid():
+            media = form.save()
+            # Keep original S3 key available for MediaConvert when storage exposes it.
+            if media.local_file and not media.original_s3_key:
+                media.original_s3_key = media.local_file.name
+                media.save(update_fields=['original_s3_key'])
+            messages.success(request, 'Media asset uploaded.')
+            return redirect('control-media')
+    else:
+        form = ProjectMediaForm(tenant=request.tenant)
+    return render(request, 'impact/control/media_form.html', _dashboard_context(request, form=form))
+
+
+@tenant_staff_required
+def control_evidence(request):
+    items = EvidenceDocument.objects.filter(project__tenant=request.tenant).select_related('project').order_by('-uploaded_at')
+    return render(request, 'impact/control/evidence.html', _dashboard_context(request, evidence_items=items))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_evidence_create(request):
+    if request.method == 'POST':
+        form = EvidenceForm(request.POST, request.FILES, tenant=request.tenant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Evidence record added.')
+            return redirect('control-evidence')
+    else:
+        form = EvidenceForm(tenant=request.tenant)
+    return render(request, 'impact/control/evidence_form.html', _dashboard_context(request, form=form))
+
+
+@tenant_staff_required
+def control_wards(request):
+    wards = Ward.objects.filter(tenant=request.tenant)
+    return render(request, 'impact/control/wards.html', _dashboard_context(request, wards=wards))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_ward_create(request):
+    if request.method == 'POST':
+        form = WardForm(request.POST)
+        if form.is_valid():
+            ward = form.save(commit=False)
+            ward.tenant = request.tenant
+            ward.save()
+            messages.success(request, 'Area added.')
+            return redirect('control-wards')
+    else:
+        form = WardForm()
+    return render(request, 'impact/control/ward_form.html', _dashboard_context(request, form=form))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_branding(request):
+    tenant = request.tenant
+    if request.method == 'POST':
+        form = TenantBrandForm(request.POST, instance=tenant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Brand and language settings updated.')
+            return redirect('control-branding')
+    else:
+        form = TenantBrandForm(instance=tenant)
+    return render(request, 'impact/control/branding.html', _dashboard_context(request, form=form))
+
+
+@tenant_staff_required
+def control_verification(request):
+    projects = Project.objects.filter(
+        tenant=request.tenant, verification_status=Project.Verification.SUBMITTED
+    ).select_related('ward').prefetch_related('documents', 'media')
+    return render(request, 'impact/control/verification.html', _dashboard_context(request, projects=projects))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_verify_project(request, pk):
+    project = get_object_or_404(Project, pk=pk, tenant=request.tenant)
+    if request.method == 'POST':
+        project.verification_status = Project.Verification.VERIFIED
+        project.save(update_fields=['verification_status','updated_at'])
+        messages.success(request, f'{project.record_id} marked verified.')
+    return redirect('control-verification')

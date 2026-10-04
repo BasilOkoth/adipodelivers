@@ -199,3 +199,23 @@ python manage.py create_tenant "Example Impact" \
 ```
 
 This means another tenant can use Kiswahili or another community language without changing the codebase.
+
+## Premium custom Control Centre
+The product now has a separate tenant-aware management workspace and does not depend on Django Admin for daily operation.
+
+- `/control/login/` — staff sign-in
+- `/control/` — Impact Command Centre
+- `/control/projects/` — project records
+- `/studio/post-to-tv/` — Post-to-TV Studio
+- `/control/media/` — photo/video library
+- `/control/evidence/` — evidence library
+- `/control/verification/` — verification queue
+- `/control/wards/` — geography
+- `/control/branding/` — tenant branding and language
+
+Django Admin may remain available to a platform superuser as an emergency/backend utility, but tenant staff should use the Control Centre.
+
+Uploaded media now uses tenant-aware S3 paths such as `tenants/<tenant>/originals/<record>/...`, and evidence uses `tenants/<tenant>/evidence/<record>/...`.
+
+### Render deployment note
+The Blueprint keeps AWS credentials out of GitHub. Render prompts only for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. The S3 bucket, Stockholm region and MediaConvert role are already declared. CloudFront remains optional until a distribution is configured.

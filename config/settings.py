@@ -35,7 +35,7 @@ if AWS_STORAGE_BUCKET_NAME:
     AWS_DEFAULT_ACL = None
     AWS_QUERYSTRING_AUTH = False
     STORAGES = {
-        'default': {'BACKEND':'storages.backends.s3.S3Storage','OPTIONS':{'bucket_name':AWS_STORAGE_BUCKET_NAME,'location':'originals'}},
+        'default': {'BACKEND':'storages.backends.s3.S3Storage','OPTIONS':{'bucket_name':AWS_STORAGE_BUCKET_NAME,'location':''}},
         'staticfiles': {'BACKEND':'whitenoise.storage.CompressedManifestStaticFilesStorage'},
     }
 else:
@@ -43,3 +43,7 @@ else:
         'default': {'BACKEND':'django.core.files.storage.FileSystemStorage'},
         'staticfiles': {'BACKEND':'whitenoise.storage.CompressedManifestStaticFilesStorage'},
     }
+
+LOGIN_URL='/control/login/'
+LOGIN_REDIRECT_URL='/control/'
+LOGOUT_REDIRECT_URL='/control/login/'

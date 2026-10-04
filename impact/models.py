@@ -4,6 +4,17 @@ from django.urls import reverse
 from django.utils.text import slugify
 
 
+
+
+def project_media_upload_to(instance, filename):
+    tenant_slug = instance.project.tenant.slug if instance.project_id else 'unassigned'
+    return f'tenants/{tenant_slug}/originals/{instance.project.record_id}/{filename}'
+
+
+def evidence_upload_to(instance, filename):
+    tenant_slug = instance.project.tenant.slug if instance.project_id else 'unassigned'
+    return f'tenants/{tenant_slug}/evidence/{instance.project.record_id}/{filename}'
+
 class Tenant(models.Model):
     """One branded deployment/client in the shared platform."""
     name = models.CharField(max_length=160)
@@ -173,7 +184,7 @@ class ProjectMedia(models.Model):
     location_label_local = models.CharField(max_length=180, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    local_file = models.FileField(upload_to='project-media/', blank=True)
+    local_file = models.FileField(upload_to=project_media_upload_to, blank=True)
     original_s3_key = models.CharField(max_length=500, blank=True)
     hls_manifest_url = models.URLField(max_length=1000, blank=True)
     mp4_fallback_url = models.URLField(max_length=1000, blank=True)
@@ -200,7 +211,7 @@ class ProjectMedia(models.Model):
 class EvidenceDocument(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='documents')
     title = models.CharField(max_length=180)
-    file = models.FileField(upload_to='evidence/', blank=True)
+    file = models.FileField(upload_to=evidence_upload_to, blank=True)
     external_url = models.URLField(blank=True)
     source_organization = models.CharField(max_length=180, blank=True)
     verified = models.BooleanField(default=False)
