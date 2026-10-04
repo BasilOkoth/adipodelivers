@@ -76,3 +76,21 @@ class TenantBrandForm(StyledModelForm):
             'primary_language_name','secondary_language_name','secondary_language_short',
             'bilingual_tv_enabled','default_tv_language_mode',
         ]
+
+
+class TenantTVSettingsForm(StyledModelForm):
+    class Meta:
+        model = Tenant
+        fields = [
+            'leader_photo','logo','brand_mark','primary_color','accent_color',
+            'tv_intro_kicker','tv_intro_headline','tv_intro_subheadline','tv_ticker_text',
+            'tv_show_leader_photo','tv_show_qr','tv_show_clock','tv_show_ticker',
+            'tv_show_website','tv_show_project_status','tv_intro_duration_seconds',
+            'bilingual_tv_enabled','default_tv_language_mode',
+        ]
+        widgets = {
+            'tv_intro_subheadline': forms.Textarea(attrs={'rows': 3}),
+            'tv_ticker_text': forms.Textarea(attrs={'rows': 3}),
+            'primary_color': forms.TextInput(attrs={'type': 'color'}),
+            'accent_color': forms.TextInput(attrs={'type': 'color'}),
+        }

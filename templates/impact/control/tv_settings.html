@@ -1,0 +1,64 @@
+{% extends 'impact/control/base.html' %}
+{% block title %}TV Experience{% endblock %}
+{% block top_title %}TV Experience{% endblock %}
+{% block content %}
+<div class="tv-settings-grid">
+  <section>
+    <div class="hero premium-tv-hero">
+      <div>
+        <div class="eyebrow">BROADCAST EXPERIENCE</div>
+        <h2>Make the impact channel feel like television.</h2>
+        <p>Upload the leader portrait, set the opening message, control QR/clock/ticker visibility and preview the exact live TV output.</p>
+      </div>
+      <a class="btn primary" href="{% url 'tv' %}" target="_blank">Open full-screen TV ↗</a>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="card tv-settings-card">
+      {% csrf_token %}
+      <div class="setting-section">
+        <div><span class="section-no">01</span><h3>On-screen identity</h3><p>Use a high-resolution portrait with a clean background. A waist-up or chest-up image works best.</p></div>
+        <div class="form-grid">
+          <div class="form-group span-2"><label>{{ form.leader_photo.label }}</label>{{ form.leader_photo }}{% if tenant.leader_photo %}<div class="current-portrait"><img src="{{ tenant.leader_photo.url }}" alt="Current leader portrait"><span>Current TV portrait</span></div>{% endif %}</div>
+          <div class="form-group"><label>{{ form.logo.label }}</label>{{ form.logo }}</div>
+          <div class="form-group"><label>{{ form.brand_mark.label }}</label>{{ form.brand_mark }}</div>
+          <div class="form-group"><label>{{ form.primary_color.label }}</label>{{ form.primary_color }}</div>
+          <div class="form-group"><label>{{ form.accent_color.label }}</label>{{ form.accent_color }}</div>
+        </div>
+      </div>
+      <div class="setting-section">
+        <div><span class="section-no">02</span><h3>Opening screen</h3><p>Keep this short. The large headline is designed to be readable from the back of a hall.</p></div>
+        <div class="form-grid">
+          <div class="form-group span-2"><label>{{ form.tv_intro_kicker.label }}</label>{{ form.tv_intro_kicker }}</div>
+          <div class="form-group span-2"><label>{{ form.tv_intro_headline.label }}</label>{{ form.tv_intro_headline }}</div>
+          <div class="form-group span-2"><label>{{ form.tv_intro_subheadline.label }}</label>{{ form.tv_intro_subheadline }}</div>
+          <div class="form-group"><label>{{ form.tv_intro_duration_seconds.label }}</label>{{ form.tv_intro_duration_seconds }}</div>
+        </div>
+      </div>
+      <div class="setting-section">
+        <div><span class="section-no">03</span><h3>Broadcast furniture</h3><p>Control the information that remains visible while stories rotate.</p></div>
+        <div class="toggle-grid">
+          <label class="toggle-card">{{ form.tv_show_leader_photo }}<span><b>Leader portrait</b><small>Show the MP portrait on the opening screen.</small></span></label>
+          <label class="toggle-card">{{ form.tv_show_qr }}<span><b>QR code</b><small>Let viewers scan for the full project record.</small></span></label>
+          <label class="toggle-card">{{ form.tv_show_clock }}<span><b>Clock</b><small>Show the live time in the channel header.</small></span></label>
+          <label class="toggle-card">{{ form.tv_show_ticker }}<span><b>Bottom ticker</b><small>Run a large, hall-readable information ribbon.</small></span></label>
+          <label class="toggle-card">{{ form.tv_show_website }}<span><b>Website address</b><small>Keep the public domain visible on screen.</small></span></label>
+          <label class="toggle-card">{{ form.tv_show_project_status }}<span><b>Evidence status</b><small>Show submitted / verified status on project stories.</small></span></label>
+        </div>
+        <div class="form-group"><label>{{ form.tv_ticker_text.label }}</label>{{ form.tv_ticker_text }}</div>
+      </div>
+      <div class="setting-section">
+        <div><span class="section-no">04</span><h3>Language</h3><p>Choose whether TV defaults to English, Dholuo, or both.</p></div>
+        <div class="form-grid">
+          <div class="form-group"><label>{{ form.default_tv_language_mode.label }}</label>{{ form.default_tv_language_mode }}</div>
+          <label class="toggle-card compact">{{ form.bilingual_tv_enabled }}<span><b>Bilingual TV enabled</b><small>Allow English + community-language presentation.</small></span></label>
+        </div>
+      </div>
+      <div class="save-bar"><div><b>Broadcast-safe design is enforced automatically.</b><small>Large typography, short copy and high contrast are not optional on the TV player.</small></div><button class="btn primary">Save TV settings</button></div>
+    </form>
+  </section>
+  <aside class="tv-preview-panel">
+    <div class="preview-head"><div><span>LIVE PREVIEW</span><b>16:9 impact channel</b></div><a href="{% url 'tv' %}" target="_blank">Full screen ↗</a></div>
+    <div class="tv-frame"><iframe src="{% url 'tv' %}" title="TV preview"></iframe></div>
+    <div class="preview-note"><b>Designed for distance</b><p>The television layout deliberately shows fewer words at once. Detailed budgets, documents and evidence stay on the website; the TV creates attention and directs viewers to the full record.</p></div>
+  </aside>
+</div>
+{% endblock %}

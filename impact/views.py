@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.utils.text import slugify
 from .models import Project, Ward, ProjectImpact, ProjectMedia, EvidenceDocument, SourcePost, TenantMembership
-from .forms import ProjectForm, ProjectMediaForm, EvidenceForm, WardForm, TenantBrandForm
+from .forms import ProjectForm, ProjectMediaForm, EvidenceForm, WardForm, TenantBrandForm, TenantTVSettingsForm
 from .post_parser import parse_social_post
 
 
@@ -230,6 +230,19 @@ def tv_playlist_api(request):
         'tagline': tenant.tagline,
         'primary_color': tenant.primary_color,
         'accent_color': tenant.accent_color,
+        'leader_photo': tenant.leader_photo.url if tenant.leader_photo else '',
+        'logo': tenant.logo.url if tenant.logo else '',
+        'tv_intro_kicker': tenant.tv_intro_kicker,
+        'tv_intro_headline': tenant.tv_intro_headline,
+        'tv_intro_subheadline': tenant.tv_intro_subheadline,
+        'tv_ticker_text': tenant.tv_ticker_text,
+        'tv_show_leader_photo': tenant.tv_show_leader_photo,
+        'tv_show_qr': tenant.tv_show_qr,
+        'tv_show_clock': tenant.tv_show_clock,
+        'tv_show_ticker': tenant.tv_show_ticker,
+        'tv_show_website': tenant.tv_show_website,
+        'tv_show_project_status': tenant.tv_show_project_status,
+        'tv_intro_duration_seconds': tenant.tv_intro_duration_seconds,
     }
     language = {
         'mode': lang_mode,
@@ -430,6 +443,21 @@ def control_ward_create(request):
     else:
         form = WardForm()
     return render(request, 'impact/control/ward_form.html', _dashboard_context(request, form=form))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_tv_settings(request):
+    tenant = request.tenant
+    if request.method == 'POST':
+        form = TenantTVSettingsForm(request.POST, request.FILES, instance=tenant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'TV experience settings updated.')
+            return redirect('control-tv-settings')
+    else:
+        form = TenantTVSettingsForm(instance=tenant)
+    return render(request, 'impact/control/tv_settings.html', _dashboard_context(request, form=form))
 
 
 @tenant_staff_required

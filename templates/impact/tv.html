@@ -1,2 +1,50 @@
 {% load static %}
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#020b12"><title>{{ tenant.display_name }} TV</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="{% static 'impact/css/tv.css' %}"><style>.location-lowerthird{position:absolute;left:4vw;bottom:8.8rem;z-index:6;background:rgba(3,15,23,.84);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(16px);padding:.85rem 1.1rem;border-radius:14px;max-width:55vw}.location-lowerthird small{display:block;color:#d9bd67;font-weight:800;letter-spacing:.13em;font-size:.66rem}.location-lowerthird b{display:block;font-size:1rem;margin-top:.25rem}.location-lowerthird .gps{opacity:.6;font-size:.7rem;margin-top:.2rem}.clip-route{margin-top:1rem;color:#d9bd67;font-weight:700}.loading{display:grid;place-items:center;height:100%;font:700 1.2rem Manrope}.open-record{display:inline-block;margin-top:1.2rem;color:#d9bd67;font-weight:800}.video-slide video{object-fit:cover}.brand-mark{background:{{ tenant.accent_color }}!important;color:{{ tenant.primary_color }}!important}.web-cta b,.location-lowerthird small,.clip-route,.open-record{color:{{ tenant.accent_color }}!important}</style></head><body><div class="tv-shell"><header class="tv-top"><div class="tv-brand"><span class="brand-mark">{{ tenant.brand_mark }}</span><div><b>{{ tenant.display_name|upper }}</b><small>PUBLIC IMPACT TV</small></div></div><div class="top-right">{% if tenant.secondary_language_name %}<div class="web-cta"><span>LANGUAGE</span><b>{% if lang_mode == 'bilingual' %}EN + {{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}{% elif lang_mode == 'local' %}{{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}{% else %}EN{% endif %}</b></div>{% endif %}<div class="web-cta"><span>EXPLORE THE FULL RECORD</span><b>{{ tenant.public_domain }}</b></div><img src="{% url 'tenant-qr' %}" alt="QR"><div class="clock" id="clock"></div></div></header><main id="stage"><div class="loading">Loading constituency impact channel…</div></main><footer class="tv-bottom"><span class="live">● LIVE DISPLAY</span><div class="ticker"><div>Project stories • Exact locations • Ward-by-ward records • Video evidence • Supporting documents • Explore more at {{ tenant.public_domain }} •</div></div><div class="progress"><span id="progressBar"></span></div><span id="slideNo">— / —</span></footer></div><script>window.TV_PLAYLIST_URL="{% url 'tv-playlist-api' %}?lang={{ lang_mode }}";window.TV_LANGUAGE_MODE="{{ lang_mode }}";</script><script src="{% static 'impact/js/tv-django.js' %}"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#020b12">
+  <title>{{ tenant.display_name }} TV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'impact/css/tv.css' %}">
+  <style>
+    :root{--brand-primary:{{ tenant.primary_color|default:'#061421' }};--brand-accent:{{ tenant.accent_color|default:'#e5c176' }};}
+  </style>
+</head>
+<body>
+<div class="tv-shell">
+  <header class="tv-top">
+    <div class="tv-brand">
+      {% if tenant.logo %}<img class="tv-logo" src="{{ tenant.logo.url }}" alt="{{ tenant.display_name }} logo">{% else %}<span class="brand-mark">{{ tenant.brand_mark }}</span>{% endif %}
+      <div>
+        <b>{{ tenant.display_name|upper }}</b>
+        <small>PUBLIC IMPACT CHANNEL</small>
+      </div>
+    </div>
+    <div class="top-right">
+      {% if tenant.secondary_language_name %}<div class="language-pill">{% if lang_mode == 'bilingual' %}EN + {{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}{% elif lang_mode == 'local' %}{{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}{% else %}EN{% endif %}</div>{% endif %}
+      {% if tenant.tv_show_website %}<div class="web-cta"><span>EXPLORE THE FULL RECORD</span><b>{{ tenant.public_domain }}</b></div>{% endif %}
+      {% if tenant.tv_show_qr %}<img class="top-qr" src="{% url 'tenant-qr' %}" alt="QR code">{% endif %}
+      {% if tenant.tv_show_clock %}<div class="clock" id="clock"></div>{% endif %}
+    </div>
+  </header>
+
+  <main id="stage"><div class="loading">Loading impact channel…</div></main>
+
+  <footer class="tv-bottom">
+    <span class="live">● LIVE IMPACT</span>
+    {% if tenant.tv_show_ticker %}<div class="ticker"><div>{{ tenant.tv_ticker_text|default:'Projects • Exact locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div></div>{% endif %}
+    <div class="progress"><span id="progressBar"></span></div>
+    <span id="slideNo">— / —</span>
+  </footer>
+</div>
+<script>
+window.TV_PLAYLIST_URL="{% url 'tv-playlist-api' %}?lang={{ lang_mode }}";
+window.TV_LANGUAGE_MODE="{{ lang_mode }}";
+</script>
+<script src="{% static 'impact/js/tv-django.js' %}"></script>
+</body>
+</html>

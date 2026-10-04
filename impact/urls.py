@@ -24,6 +24,7 @@ urlpatterns = [
     path('control/wards/', views.control_wards, name='control-wards'),
     path('control/wards/new/', views.control_ward_create, name='control-ward-create'),
     path('control/branding/', views.control_branding, name='control-branding'),
+    path('control/tv-settings/', views.control_tv_settings, name='control-tv-settings'),
     path('control/verification/', views.control_verification, name='control-verification'),
     path('control/verification/<int:pk>/verify/', views.control_verify_project, name='control-verify-project'),
 ]

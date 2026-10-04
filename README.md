@@ -219,3 +219,11 @@ Uploaded media now uses tenant-aware S3 paths such as `tenants/<tenant>/original
 
 ### Render deployment note
 The Blueprint keeps AWS credentials out of GitHub. Render prompts only for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. The S3 bucket, Stockholm region and MediaConvert role are already declared. CloudFront remains optional until a distribution is configured.
+
+## Premium TV Experience (v2)
+
+The Control Centre now includes **TV Experience** at `/control/tv-settings/`. This is the operational place to upload the leader portrait/logo and control the opening screen, website/QR visibility, ticker, clock, project verification badge, TV language mode, and intro duration.
+
+The TV player was redesigned for large rooms and 16:9 displays. It deliberately uses broadcast-scale typography, fewer words per screen, stronger lower-thirds, high contrast, and a cinematic leader portrait opening. Detailed documents and budgets remain on the website; TV is optimized for distance viewing and drives viewers to the evidence record.
+
+Brand assets are stored tenant-safely under `tenants/<tenant-slug>/branding/`, matching the existing per-tenant S3 access model.

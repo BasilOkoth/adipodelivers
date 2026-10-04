@@ -6,6 +6,11 @@ from django.utils.text import slugify
 
 
 
+def tenant_branding_upload_to(instance, filename):
+    slug = instance.slug or 'unassigned'
+    return f'tenants/{slug}/branding/{filename}'
+
+
 def project_media_upload_to(instance, filename):
     tenant_slug = instance.project.tenant.slug if instance.project_id else 'unassigned'
     return f'tenants/{tenant_slug}/originals/{instance.project.record_id}/{filename}'
@@ -30,8 +35,8 @@ class Tenant(models.Model):
     brand_mark = models.CharField(max_length=12, default='I')
     primary_color = models.CharField(max_length=20, default='#061421')
     accent_color = models.CharField(max_length=20, default='#e5c176')
-    logo = models.ImageField(upload_to='tenant-branding/', blank=True)
-    qr_image = models.ImageField(upload_to='tenant-branding/', blank=True)
+    logo = models.ImageField(upload_to=tenant_branding_upload_to, blank=True)
+    qr_image = models.ImageField(upload_to=tenant_branding_upload_to, blank=True)
     area_label = models.CharField(max_length=100, blank=True)
     population_label = models.CharField(max_length=100, blank=True)
     area_unit_singular = models.CharField(max_length=60, default='ward')
@@ -43,6 +48,18 @@ class Tenant(models.Model):
     secondary_language_short = models.CharField(max_length=12, blank=True)
     bilingual_tv_enabled = models.BooleanField(default=False)
     default_tv_language_mode = models.CharField(max_length=16, choices=[('en','English'),('local','Community language'),('bilingual','Bilingual')], default='en')
+    leader_photo = models.ImageField(upload_to=tenant_branding_upload_to, blank=True)
+    tv_intro_kicker = models.CharField(max_length=120, blank=True, default='PUBLIC IMPACT CHANNEL')
+    tv_intro_headline = models.CharField(max_length=180, blank=True, default='Impact you can see.')
+    tv_intro_subheadline = models.CharField(max_length=300, blank=True, default='Projects, places and evidence from across the constituency.')
+    tv_ticker_text = models.CharField(max_length=500, blank=True, default='Projects • Exact locations • Photos • Videos • Evidence • Ward-by-ward impact')
+    tv_show_leader_photo = models.BooleanField(default=True)
+    tv_show_qr = models.BooleanField(default=True)
+    tv_show_clock = models.BooleanField(default=True)
+    tv_show_ticker = models.BooleanField(default=True)
+    tv_show_website = models.BooleanField(default=True)
+    tv_show_project_status = models.BooleanField(default=True)
+    tv_intro_duration_seconds = models.PositiveIntegerField(default=8)
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
