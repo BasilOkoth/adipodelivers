@@ -1,0 +1,8 @@
+Django>=5.2,<5.3
+gunicorn>=23.0
+whitenoise>=6.8
+boto3>=1.35
+django-storages[s3]>=1.14
+psycopg[binary]>=3.2
+dj-database-url>=2.2
+qrcode[pil]>=8.0
