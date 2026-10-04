@@ -4,14 +4,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#020b12">
+  <meta name="theme-color" content="#080b10">
   <title>{{ tenant.display_name }} TV</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'impact/css/tv.css' %}">
   <style>
-    :root{--brand-primary:{{ tenant.primary_color|default:'#061421' }};--brand-accent:{{ tenant.accent_color|default:'#e5c176' }};}
+    :root{--brand-primary:{{ tenant.primary_color|default:'#11151c' }};--brand-accent:{{ tenant.accent_color|default:'#d61f26' }};}
   </style>
 </head>
 <body>
@@ -21,12 +21,11 @@
       {% if tenant.logo %}<img class="tv-logo" src="{{ tenant.logo.url }}" alt="{{ tenant.display_name }} logo">{% else %}<span class="brand-mark">{{ tenant.brand_mark }}</span>{% endif %}
       <div>
         <b>{{ tenant.display_name|upper }}</b>
-        <small>PUBLIC IMPACT CHANNEL</small>
+        <small>IMPACT UPDATE CHANNEL</small>
       </div>
     </div>
     <div class="top-right">
-      {% if tenant.secondary_language_name %}<div class="language-pill">{% if lang_mode == 'bilingual' %}EN + {{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}{% elif lang_mode == 'local' %}{{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}{% else %}EN{% endif %}</div>{% endif %}
-      {% if tenant.tv_show_website %}<div class="web-cta"><span>EXPLORE THE FULL RECORD</span><b>{{ tenant.public_domain }}</b></div>{% endif %}
+      {% if tenant.tv_show_website %}<div class="web-cta"><span>READ THE FULL RECORD</span><b>{{ tenant.public_domain }}</b></div>{% endif %}
       {% if tenant.tv_show_qr %}<img class="top-qr" src="{% url 'tenant-qr' %}" alt="QR code">{% endif %}
       {% if tenant.tv_show_clock %}<div class="clock" id="clock"></div>{% endif %}
     </div>
@@ -35,8 +34,8 @@
   <main id="stage"><div class="loading">Loading impact channel…</div></main>
 
   <footer class="tv-bottom">
-    <span class="live">● LIVE IMPACT</span>
-    {% if tenant.tv_show_ticker %}<div class="ticker"><div>{{ tenant.tv_ticker_text|default:'Projects • Exact locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div></div>{% endif %}
+    <span class="live">● IMPACT LIVE</span>
+    {% if tenant.tv_show_ticker %}<div class="ticker"><div>{{ tenant.tv_ticker_text|default:'Projects • Locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div></div>{% endif %}
     <div class="progress"><span id="progressBar"></span></div>
     <span id="slideNo">— / —</span>
   </footer>
