@@ -5,13 +5,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#080b10">
-  <title>{{ tenant.display_name }} TV</title>
+  <title>Adipo Delivers TV</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'impact/css/tv.css' %}">
   <style>
-    :root{--brand-primary:{{ tenant.primary_color|default:'#11151c' }};--brand-accent:{{ tenant.accent_color|default:'#d61f26' }};}
+    :root{
+      --brand-primary:{{ tenant.primary_color|default:'#11151c' }};
+      --brand-accent:{{ tenant.accent_color|default:'#d61f26' }};
+    }
   </style>
 </head>
 <body>
@@ -20,31 +23,49 @@
     <div class="tv-brand">
       <div class="tv-brand-badge{% if not tenant.logo %} fallback{% endif %}">
         {% if tenant.logo %}
-          <img class="tv-logo" src="{{ tenant.logo.url }}" alt="{{ tenant.display_name }} logo" onerror="this.style.display='none'; this.parentElement.classList.add('fallback');">
+          <img class="tv-logo" src="{{ tenant.logo.url }}" alt="Adipo Delivers logo"
+               onerror="this.style.display='none';this.parentElement.classList.add('fallback');">
         {% endif %}
-        <span class="brand-mark-fallback">{{ tenant.brand_mark }}</span>
+        <span class="brand-mark-fallback">AD</span>
       </div>
-      <div>
-        <b>{{ tenant.display_name|upper }}</b>
-        <small>IMPACT UPDATE CHANNEL</small>
+      <div class="tv-brand-copy">
+        <b>ADIPO DELIVERS</b>
+        <small>KARACHUONYO CONSTITUENCY IMPACT</small>
       </div>
     </div>
+
     <div class="top-right">
-      {% if tenant.tv_show_website %}<div class="web-cta"><span>READ THE FULL RECORD</span><b>{{ tenant.public_domain }}</b></div>{% endif %}
-      {% if tenant.tv_show_qr %}<img class="top-qr" src="{% url 'tenant-qr' %}" alt="QR code">{% endif %}
-      {% if tenant.tv_show_clock %}<div class="clock" id="clock"></div>{% endif %}
+      {% if tenant.tv_show_website %}
+      <div class="web-cta">
+        <span>EXPLORE THE FULL RECORD</span>
+        <b>{{ tenant.public_domain }}</b>
+      </div>
+      {% endif %}
+      {% if tenant.tv_show_qr %}
+        <img class="top-qr" src="{% url 'tenant-qr' %}" alt="QR code">
+      {% endif %}
+      {% if tenant.tv_show_clock %}
+        <div class="clock" id="clock"></div>
+      {% endif %}
     </div>
   </header>
 
-  <main id="stage"><div class="loading">Loading impact channel…</div></main>
+  <main id="stage">
+    <div class="loading">Loading impact channel…</div>
+  </main>
 
   <footer class="tv-bottom">
     <span class="live"><span class="live-dot"></span> IMPACT LIVE</span>
-    {% if tenant.tv_show_ticker %}<div class="ticker"><div>{{ tenant.tv_ticker_text|default:'Projects • Locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div></div>{% endif %}
+    {% if tenant.tv_show_ticker %}
+      <div class="ticker">
+        <div>{{ tenant.tv_ticker_text|default:'Projects • Locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div>
+      </div>
+    {% endif %}
     <div class="progress"><span id="progressBar"></span></div>
     <span id="slideNo">— / —</span>
   </footer>
 </div>
+
 <script>
 window.TV_PLAYLIST_URL="{% url 'tv-playlist-api' %}?lang={{ lang_mode }}";
 window.TV_LANGUAGE_MODE="{{ lang_mode }}";
