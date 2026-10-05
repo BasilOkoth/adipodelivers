@@ -58,7 +58,7 @@
     <span class="live"><span class="live-dot"></span> IMPACT LIVE</span>
     {% if tenant.tv_show_ticker %}
       <div class="ticker">
-        <div id="tickerTrack">{{ tenant.tv_ticker_text|default:'Projects • Locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div>
+        <div id="tickerText">{{ tenant.tv_ticker_text|default:'Projects • Locations • Photos • Videos • Evidence • Ward-by-ward impact' }}{% if tenant.tv_show_website %} • Explore more at {{ tenant.public_domain }}{% endif %} •</div>
       </div>
     {% endif %}
     <div class="progress"><span id="progressBar"></span></div>
