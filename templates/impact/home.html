@@ -1,10 +1,274 @@
 {% load static %}
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="{{ tenant.primary_color }}"><title>{{ tenant.display_name }} | Impact Platform</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="{% static 'impact/css/site.css' %}"><style>.project-link{color:inherit;text-decoration:none}.project-location{font-size:.8rem;opacity:.72;margin-top:.7rem}.location-pill{display:inline-flex;gap:.45rem;align-items:center;padding:.45rem .65rem;border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:.75rem}.location-pill:before{content:'●';font-size:.55rem}.project-visual{min-height:190px;background:linear-gradient(135deg,#0c2f43,#153e43);display:flex;align-items:end;padding:1rem}.project-visual video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.project-card{overflow:hidden}.project-card .project-visual{position:relative}.brand-glyph,.btn.primary{background:var(--tenant-accent)!important}.kicker,.hero-label{color:var(--tenant-accent)!important}</style></head><body style="--tenant-primary:{{ tenant.primary_color }};--tenant-accent:{{ tenant.accent_color }}">
-<header class="topbar"><a class="brand" href="#home"><span class="brand-glyph">{{ tenant.brand_mark }}</span><span><b>{{ tenant.display_name|upper }}</b><small>Impact & accountability platform</small></span></a><nav><a href="#overview">Overview</a><a href="#projects">Projects</a><a href="#wards">Wards</a><a href="#media">Media</a><a href="#evidence">Evidence</a></nav>{% if tenant.secondary_language_name %}<div class="language-switch" style="display:flex;gap:6px;align-items:center;font-size:10px"><a class="tv-button" style="padding:8px 10px" href="?lang=en">EN</a><a class="tv-button" style="padding:8px 10px" href="?lang=local">{{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}</a></div>{% endif %}{% if request.user.is_staff %}<a class="tv-button" href="{% url 'post-to-tv-studio' %}">POST → TV</a>{% endif %}<a class="tv-button" href="{% url 'tv' %}"><span>●</span> TV MODE</a></header>
-<main><section class="hero" id="home"><div class="hero-grid"></div><div class="hero-orb orb-a"></div><div class="hero-orb orb-b"></div><div class="hero-copy"><div class="hero-label"><span></span> {{ tenant.jurisdiction_name|upper }} · {{ tenant.county_name|upper }}{% if tenant.secondary_language_name %} · EN / {{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}{% endif %}</div><h1>Public service,<br><em>made visible.</em></h1><p>One digital record for projects, places, public investment, evidence and results — presented on the web and on an always-on premium TV display.</p><div class="hero-actions"><a class="btn primary" href="#projects">Explore the record</a><a class="btn glass" href="{% url 'tv' %}">Launch TV experience →</a></div><div class="mp-strip"><div class="mp-avatar"><span>{{ tenant.brand_mark }}</span></div><div><small>{{ tenant.leader_title|upper }}</small><strong>{{ tenant.leader_name }}</strong><span>{{ tenant.jurisdiction_name }}</span></div></div></div><div class="hero-console"><div class="console-top"><span>CONSTITUENCY PULSE</span><span class="live-dot">● LIVE DATA LAYER</span></div><div class="constituency-number"><strong>{{ wards|length }}</strong><span>{{ tenant.area_unit_plural }} connected to one public record</span></div><div class="console-row"><div><small>AREA</small><b>{{ tenant.area_label|default:"Not set" }}</b></div><div><small>POPULATION</small><b>{{ tenant.population_label|default:"Not set" }}</b></div></div><div class="mini-map"><span class="route r1"></span><span class="route r2"></span><span class="route r3"></span><i class="pin p1"></i><i class="pin p2"></i><i class="pin p3"></i><i class="pin p4"></i></div><p class="console-note">Project performance metrics remain evidence-gated until supporting records are attached.</p></div><div class="hero-domain"><span>EXPLORE MORE</span><b>{{ tenant.public_domain }}</b><img src="{% url 'tenant-qr' %}" alt="QR code for {{ tenant.public_domain }}"></div></section>
-<section class="section" id="overview"><div class="section-head"><div><span class="kicker">THE SYSTEM</span><h2>One source of truth.<br>Every screen stays in sync.</h2></div><p>Projects entered through Django Admin automatically power the public website, ward views, evidence pages, statistics and TV playlist.</p></div><div class="stats-grid"><article class="stat-card"><strong>{{ wards|length }}</strong><span>{{ tenant.area_unit_plural|title }}</span><small>{{ tenant.jurisdiction_name }} structure</small></article><article class="stat-card"><strong>{{ tenant.area_label|default:"—" }}</strong><span>Jurisdiction area</span><small>Profile</small></article><article class="stat-card"><strong>{{ tenant.population_label|default:"—" }}</strong><span>Population</span><small>Profile reference</small></article><article class="stat-card"><strong>{{ projects|length }}</strong><span>Published records</span><small>Status shown on each record</small></article></div><div class="flowbar"><span>DJANGO ADMIN</span><i>→</i><span>PROJECT RECORD</span><i>→</i><span>WEBSITE</span><i>→</i><span>EVIDENCE</span><i>→</i><span>TV CHANNEL</span></div></section>
-<section class="showcase" id="media"><div class="showcase-copy"><span class="kicker light">TV + VIDEO</span><h2>Location-aware video stories.</h2><p>Every clip can carry its exact filming location while the project retains its wider route or site. Production video is designed for S3 → MediaConvert → CloudFront delivery.</p><div class="chip-row"><span>S3 storage</span><span>MediaConvert</span><span>CloudFront CDN</span><span>HLS + MP4</span><span>Location overlays</span></div><a href="{% url 'tv' %}" class="btn gold">Experience TV mode →</a></div><div class="video-frame"><video autoplay muted loop playsinline><source src="{% static 'impact/media/road-demo.mp4' %}" type="video/mp4"></video><div class="video-overlay"><small>📍 {{ tenant.jurisdiction_name|upper }} · PROJECT MEDIA</small><strong>New road connection</strong><span>Submitted record · verification pending</span></div><div class="video-control"><span>● NOW PLAYING</span><b>00:16</b></div></div></section>
-<section class="section dark" id="projects"><div class="section-head"><div><span class="kicker light">PROJECT EXPLORER</span><h2>Every record, traceable to place.</h2></div><p>The location is part of the project record, while each video can carry a more precise clip location and optional GPS coordinates.</p></div><div class="project-grid">{% for p in projects %}<a class="project-link" href="{{ p.get_absolute_url }}"><article class="project-card"><div class="project-visual"><span class="project-badge">{{ p.sector }}</span></div><div class="project-body"><h3>{% if lang_mode == 'local' and p.title_local %}{{ p.title_local }}{% else %}{{ p.title }}{% endif %}</h3><p>{% if lang_mode == 'local' and p.summary_local %}{{ p.summary_local|truncatewords:34 }}{% else %}{{ p.summary|truncatewords:34 }}{% endif %}</p><div class="location-pill">{% if lang_mode == 'local' and p.project_location_local %}{{ p.project_location_local }}{% else %}{{ p.project_location }}{% endif %}</div><div class="project-meta"><span>{% if lang_mode == 'local' and p.ward.name_local %}{{ p.ward.name_local }}{% else %}{{ p.ward.name }}{% endif %}</span><span class="project-status">{{ p.get_verification_status_display|upper }}</span></div></div></article></a>{% empty %}<p>No projects have been published yet.</p>{% endfor %}</div></section>
-<section class="section" id="wards"><div class="section-head"><div><span class="kicker">GEOGRAPHIC ACCOUNTABILITY</span><h2>See the record<br>{{ tenant.area_unit_singular }} by {{ tenant.area_unit_singular }}.</h2></div><p>Each {{ tenant.area_unit_singular }} can carry its own project count and project history.</p></div><div class="ward-grid">{% for w in wards %}<article class="ward-card"><strong>{% if lang_mode == 'local' and w.name_local %}{{ w.name_local }}{% else %}{{ w.name }}{% endif %}</strong><span>Published project records</span><div class="ward-count">{{ w.projects.count }}</div><span>{% if w.projects.count %}Records available · status shown{% else %}Awaiting documented project data{% endif %}</span></article>{% endfor %}</div></section>
-<section class="evidence" id="evidence"><div class="evidence-copy"><span class="kicker">EVIDENCE LAYER</span><h2>Beautiful presentation.<br>Serious documentation.</h2><p>Every public claim can lead to funding, location, GPS, implementation, photographs, video and source documents.</p><div class="evidence-points"><span>01 · Source attribution</span><span>02 · Media provenance</span><span>03 · Budget & funding</span><span>04 · Geolocation</span><span>05 · Verification status</span></div></div><div class="record-card"><div class="record-head"><div><small>PLATFORM RULE</small><b>LOCATION IS REQUIRED</b></div><span>EVIDENCE-FIRST</span></div><div class="record-route">Project location <i>→</i> clip location <i>→</i> optional GPS <i>→</i> supporting evidence</div><div class="record-grid"><div><small>PROJECT</small><b>Route / site</b></div><div><small>VIDEO</small><b>Exact clip location</b></div><div><small>GPS</small><b>Optional coordinates</b></div><div><small>TV</small><b>Visible lower-third</b></div></div><div class="record-foot"><img src="{% url 'tenant-qr' %}" alt="QR"><p>TV stories link back to the full project record on <b>{{ tenant.public_domain }}</b>.</p></div></div></section></main>
-<footer><div class="footer-brand"><span class="brand-glyph">{{ tenant.brand_mark }}</span><div><b>{{ tenant.display_name|upper }}</b><small>Multi-tenant impact platform</small></div></div><p>Submitted records should be supported before being marked verified.</p><a href="{% url 'tv' %}">Open TV mode →</a></footer></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="{{ tenant.primary_color }}">
+  <title>{{ tenant.display_name }} | Karachuonyo Development Record</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'impact/css/site.css' %}">
+  <style>
+    .project-link{color:inherit;text-decoration:none}
+    .project-location{font-size:.8rem;opacity:.72;margin-top:.7rem}
+    .location-pill{display:inline-flex;gap:.45rem;align-items:center;padding:.45rem .65rem;border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:.75rem}
+    .location-pill:before{content:'●';font-size:.55rem}
+    .project-visual{min-height:190px;background:linear-gradient(135deg,#0c2f43,#153e43);display:flex;align-items:end;padding:1rem}
+    .project-visual video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .project-card{overflow:hidden}
+    .project-card .project-visual{position:relative}
+    .brand-glyph,.btn.primary{background:var(--tenant-accent)!important}
+    .kicker,.hero-label{color:var(--tenant-accent)!important}
+  </style>
+</head>
+<body style="--tenant-primary:{{ tenant.primary_color }};--tenant-accent:{{ tenant.accent_color }}">
+
+<header class="topbar">
+  <a class="brand" href="#home">
+    <span class="brand-glyph">{{ tenant.brand_mark }}</span>
+    <span>
+      <b>{{ tenant.display_name|upper }}</b>
+      <small>Karachuonyo development record</small>
+    </span>
+  </a>
+
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#projects">Projects</a>
+    <a href="#wards">Wards</a>
+    <a href="#media">Stories</a>
+    <a href="#evidence">Evidence</a>
+  </nav>
+
+  {% if tenant.secondary_language_name %}
+    <div class="language-switch" style="display:flex;gap:6px;align-items:center;font-size:10px">
+      <a class="tv-button" style="padding:8px 10px" href="?lang=en">EN</a>
+      <a class="tv-button" style="padding:8px 10px" href="?lang=local">{{ tenant.secondary_language_short|default:tenant.secondary_language_name|upper }}</a>
+    </div>
+  {% endif %}
+
+  {% if request.user.is_staff %}
+    <a class="tv-button" href="{% url 'post-to-tv-studio' %}">MANAGE CONTENT</a>
+  {% endif %}
+  <a class="tv-button" href="{% url 'tv' %}"><span>●</span> LIVE VIEW</a>
+</header>
+
+<main>
+  <section class="hero" id="home">
+    <div class="hero-grid"></div>
+    <div class="hero-orb orb-a"></div>
+    <div class="hero-orb orb-b"></div>
+
+    <div class="hero-copy">
+      <div class="hero-label">
+        <span></span> {{ tenant.jurisdiction_name|upper }} · {{ tenant.county_name|upper }}
+      </div>
+      <h1>Development progress,<br><em>made visible.</em></h1>
+      <p>See where development is happening, what has been delivered, and the evidence behind projects across {{ tenant.jurisdiction_name }}.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#projects">Explore projects</a>
+        <a class="btn glass" href="#wards">View by ward →</a>
+      </div>
+
+      <div class="mp-strip">
+        <div class="mp-avatar"><span>{{ tenant.brand_mark }}</span></div>
+        <div>
+          <small>{{ tenant.leader_title|upper }}</small>
+          <strong>{{ tenant.leader_name }}</strong>
+          <span>{{ tenant.jurisdiction_name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-console">
+      <div class="console-top">
+        <span>CONSTITUENCY OVERVIEW</span>
+        <span class="live-dot">● CURRENT RECORD</span>
+      </div>
+      <div class="constituency-number">
+        <strong>{{ wards|length }}</strong>
+        <span>{{ tenant.area_unit_plural }} represented</span>
+      </div>
+      <div class="console-row">
+        <div><small>AREA</small><b>{{ tenant.area_label|default:"Not set" }}</b></div>
+        <div><small>POPULATION</small><b>{{ tenant.population_label|default:"Not set" }}</b></div>
+      </div>
+      <div class="mini-map">
+        <span class="route r1"></span><span class="route r2"></span><span class="route r3"></span>
+        <i class="pin p1"></i><i class="pin p2"></i><i class="pin p3"></i><i class="pin p4"></i>
+      </div>
+      <p class="console-note">Project information is published together with its status and available supporting evidence.</p>
+    </div>
+
+    <div class="hero-domain">
+      <span>EXPLORE MORE</span>
+      <b>{{ tenant.public_domain }}</b>
+      <img src="{% url 'tenant-qr' %}" alt="QR code for {{ tenant.public_domain }}">
+    </div>
+  </section>
+
+  <section class="section" id="overview">
+    <div class="section-head">
+      <div>
+        <span class="kicker">DEVELOPMENT OVERVIEW</span>
+        <h2>Tracking progress across<br>{{ tenant.jurisdiction_name }}.</h2>
+      </div>
+      <p>A clear public record of development projects, locations, progress and results across the constituency.</p>
+    </div>
+
+    <div class="stats-grid">
+      <article class="stat-card">
+        <strong>{{ wards|length }}</strong>
+        <span>{{ tenant.area_unit_plural|title }}</span>
+        <small>Across {{ tenant.jurisdiction_name }}</small>
+      </article>
+      <article class="stat-card">
+        <strong>{{ tenant.area_label|default:"—" }}</strong>
+        <span>Constituency area</span>
+        <small>Geographic profile</small>
+      </article>
+      <article class="stat-card">
+        <strong>{{ tenant.population_label|default:"—" }}</strong>
+        <span>Population</span>
+        <small>Constituency profile</small>
+      </article>
+      <article class="stat-card">
+        <strong>{{ projects|length }}</strong>
+        <span>Project records</span>
+        <small>Published development records</small>
+      </article>
+    </div>
+  </section>
+
+  <section class="showcase" id="media">
+    <div class="showcase-copy">
+      <span class="kicker light">PROJECT STORIES</span>
+      <h2>See development where it is happening.</h2>
+      <p>Photos and videos provide a closer view of project sites, works completed and progress on the ground.</p>
+      <div class="chip-row">
+        <span>Project locations</span>
+        <span>Photos</span>
+        <span>Videos</span>
+        <span>Progress updates</span>
+        <span>Supporting evidence</span>
+      </div>
+      <a href="#projects" class="btn gold">Explore project records →</a>
+    </div>
+
+    <div class="video-frame">
+      <video autoplay muted loop playsinline>
+        <source src="{% static 'impact/media/road-demo.mp4' %}" type="video/mp4">
+      </video>
+      <div class="video-overlay">
+        <small>📍 {{ tenant.jurisdiction_name|upper }} · PROJECT STORY</small>
+        <strong>Development on the ground</strong>
+        <span>Location, progress and supporting information</span>
+      </div>
+      <div class="video-control"><span>● NOW PLAYING</span></div>
+    </div>
+  </section>
+
+  <section class="section dark" id="projects">
+    <div class="section-head">
+      <div>
+        <span class="kicker light">PROJECTS</span>
+        <h2>Explore development<br>project by project.</h2>
+      </div>
+      <p>Each record shows where the project is located, what has been done, its current status and the evidence available.</p>
+    </div>
+
+    <div class="project-grid">
+      {% for p in projects %}
+        <a class="project-link" href="{{ p.get_absolute_url }}">
+          <article class="project-card">
+            <div class="project-visual">
+              <span class="project-badge">{{ p.sector }}</span>
+            </div>
+            <div class="project-body">
+              <h3>{% if lang_mode == 'local' and p.title_local %}{{ p.title_local }}{% else %}{{ p.title }}{% endif %}</h3>
+              <p>{% if lang_mode == 'local' and p.summary_local %}{{ p.summary_local|truncatewords:34 }}{% else %}{{ p.summary|truncatewords:34 }}{% endif %}</p>
+              <div class="location-pill">{% if lang_mode == 'local' and p.project_location_local %}{{ p.project_location_local }}{% else %}{{ p.project_location }}{% endif %}</div>
+              <div class="project-meta">
+                <span>{% if lang_mode == 'local' and p.ward.name_local %}{{ p.ward.name_local }}{% else %}{{ p.ward.name }}{% endif %}</span>
+                <span class="project-status">{{ p.get_verification_status_display|upper }}</span>
+              </div>
+            </div>
+          </article>
+        </a>
+      {% empty %}
+        <p>No project records have been published yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section" id="wards">
+    <div class="section-head">
+      <div>
+        <span class="kicker">WARD-BY-WARD VIEW</span>
+        <h2>Follow development<br>across every {{ tenant.area_unit_singular }}.</h2>
+      </div>
+      <p>See the number of published project records and explore progress across the different parts of {{ tenant.jurisdiction_name }}.</p>
+    </div>
+
+    <div class="ward-grid">
+      {% for w in wards %}
+        <article class="ward-card">
+          <strong>{% if lang_mode == 'local' and w.name_local %}{{ w.name_local }}{% else %}{{ w.name }}{% endif %}</strong>
+          <span>Published project records</span>
+          <div class="ward-count">{{ w.projects.count }}</div>
+          <span>{% if w.projects.count %}Project information available{% else %}No published project record yet{% endif %}</span>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="evidence" id="evidence">
+    <div class="evidence-copy">
+      <span class="kicker">PROJECT EVIDENCE</span>
+      <h2>From project claim<br>to supporting record.</h2>
+      <p>Where available, project records can include funding information, exact location, photographs, videos, implementation details and supporting documents.</p>
+      <div class="evidence-points">
+        <span>01 · Project location</span>
+        <span>02 · Photos and videos</span>
+        <span>03 · Funding information</span>
+        <span>04 · Progress status</span>
+        <span>05 · Supporting documents</span>
+      </div>
+    </div>
+
+    <div class="record-card">
+      <div class="record-head">
+        <div><small>PUBLIC RECORD</small><b>PROJECT DETAILS</b></div>
+        <span>TRACEABLE</span>
+      </div>
+      <div class="record-route">Project <i>→</i> location <i>→</i> progress <i>→</i> evidence</div>
+      <div class="record-grid">
+        <div><small>PROJECT</small><b>What was done</b></div>
+        <div><small>LOCATION</small><b>Where it happened</b></div>
+        <div><small>PROGRESS</small><b>Current status</b></div>
+        <div><small>EVIDENCE</small><b>Supporting records</b></div>
+      </div>
+      <div class="record-foot">
+        <img src="{% url 'tenant-qr' %}" alt="QR code">
+        <p>Explore project records and supporting information at <b>{{ tenant.public_domain }}</b>.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-brand">
+    <span class="brand-glyph">{{ tenant.brand_mark }}</span>
+    <div>
+      <b>{{ tenant.display_name|upper }}</b>
+      <small>Karachuonyo development record</small>
+    </div>
+  </div>
+  <p>Project records are presented with their current status and available supporting information.</p>
+  <a href="#projects">Explore projects →</a>
+</footer>
+
+</body>
+</html>
