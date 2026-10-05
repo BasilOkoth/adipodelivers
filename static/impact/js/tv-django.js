@@ -81,27 +81,34 @@ function videoSlide(p,m,b){
 }
 
 function imageSlide(p,m,b){
-  const title=bi(p.short_title,p.short_title_local,'h2',84);
-  const caption=bi(m.caption||p.summary,m.caption_local||p.summary_local,'p',105);
   const loc=pick(m.location||p.location,m.location_local||p.location_local);
   const ward=wardLabel(p);
+  const shortCaption=trim(m.caption||p.summary,100);
   return {
     duration:Math.max(9000,(m.duration||12)*1000),
     ticker:projectTicker(p,b,m.caption||''),
-    html:`<section class="slide photo-story-slide">
-      <img class="photo-story-image" src="${esc(m.url)}" alt="${esc(m.title||p.short_title)}">
-      <div class="photo-story-overlay"></div>
-      <div class="photo-story-copy">
-        <div class="eyebrow">${esc(p.sector)} · ${esc(ward)}</div>
-        ${title}
-        ${caption}
-        <div class="photo-story-location">
+    html:`<section class="slide editorial-photo-slide">
+      <img class="editorial-photo-image" src="${esc(m.url)}" alt="${esc(m.title||p.short_title)}">
+      <div class="editorial-photo-vignette"></div>
+
+      <div class="editorial-photo-top">
+        <div class="editorial-sector">${esc(p.sector)}</div>
+        <div class="editorial-ward">${esc(ward)}</div>
+      </div>
+
+      <div class="editorial-photo-story">
+        <div class="editorial-accent"></div>
+        <h2>${esc(trim(p.short_title||p.title,82))}</h2>
+        ${shortCaption?`<p>${esc(shortCaption)}</p>`:''}
+        <div class="editorial-location">
           <span>PROJECT SITE</span>
-          <b>${esc(trim(loc,96))}</b>
+          <b>${esc(trim(loc,88))}</b>
         </div>
       </div>
-      <div class="photo-story-credit">
-        <span>${esc(ward)}</span>
+
+      <div class="editorial-photo-index">
+        <span>ADIPO DELIVERS</span>
+        <b>PROJECT IMPACT</b>
       </div>
     </section>`
   };
