@@ -31,12 +31,58 @@ function wardLabel(p){return pick(p.ward,p.ward_local)}
 function locationLabel(p){return pick(p.location,p.location_local)}
 function localModeQuery(){return `?lang=${encodeURIComponent(lang())}`}
 
+function money(v){
+  if(v===null||v===undefined||v==='') return '';
+  const n=Number(v);
+  if(!Number.isFinite(n)) return String(v);
+  return `KES ${n.toLocaleString('en-KE',{maximumFractionDigits:0})}`;
+}
+function dateLabel(v){
+  if(!v) return '';
+  const d=new Date(`${v}T00:00:00`);
+  if(Number.isNaN(d.getTime())) return v;
+  return d.toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'});
+}
+function projectTicker(p,b,extra=''){
+  const bits=[];
+  bits.push(p.short_title||p.title||'Project update');
+  if(p.ward) bits.push(`${wardLabel(p)} Ward`);
+  if(p.location) bits.push(`Location: ${trim(locationLabel(p),100)}`);
+  if(p.intervention) bits.push(`Intervention: ${trim(pick(p.intervention,p.intervention_local),105)}`);
+  if(p.funding_source) bits.push(`Funding: ${trim(p.funding_source,70)}`);
+  if(p.budget) bits.push(`Budget: ${money(p.budget)}`);
+  if(p.implementing_agency) bits.push(`Implementing agency: ${trim(p.implementing_agency,70)}`);
+  if(p.beneficiaries) bits.push(`Beneficiaries: ${Number(p.beneficiaries).toLocaleString('en-KE')}`);
+  if(p.start_date) bits.push(`Started: ${dateLabel(p.start_date)}`);
+  if(p.completion_date) bits.push(`Completion: ${dateLabel(p.completion_date)}`);
+  if(extra) bits.push(extra);
+  if(p.impacts?.length) bits.push(`Impact: ${trim(pick(p.impacts[0].en,p.impacts[0].local),110)}`);
+  if(b?.domain) bits.push(`More: ${b.domain}`);
+  return bits.filter(Boolean).join('  •  ');
+}
+function generalTicker(data,b){
+  const projects=data.projects||[];
+  const wards=new Set(projects.map(p=>p.ward).filter(Boolean)).size;
+  const sectors=new Set(projects.map(p=>p.sector).filter(Boolean)).size;
+  const lead=b.tv_ticker_text||'Adipo Delivers constituency impact update';
+  return `${lead}  •  ${projects.length} project record${projects.length===1?'':'s'}  •  ${wards} ward${wards===1?'':'s'} represented  •  ${sectors} sector${sectors===1?'':'s'}  ${b.domain?`•  Explore ${b.domain}`:''}`;
+}
+function setTicker(text){
+  const track=document.getElementById('tickerTrack');
+  if(!track||!text) return;
+  track.style.animation='none';
+  track.textContent=`${text}  •  `;
+  void track.offsetWidth;
+  track.style.animation='ticker 34s linear infinite';
+}
+
 function videoSlide(p,m,b){
   const title=bi(p.short_title,p.short_title_local,'h2',84);
   const caption=bi(m.caption||p.summary,m.caption_local||p.summary_local,'p',115);
   const ward=pick(m.ward||p.ward,m.ward_local||p.ward_local);
   return {
     duration:Math.max(9000,(m.end||m.duration||15)*1000),
+    ticker:projectTicker(p,b,m.caption?`Media: ${trim(m.caption,90)}`:''),
     html:`<section class="slide clean-media-slide">
       <div class="media-copy">
         <div class="eyebrow">${esc(p.sector)} · ${esc(ward)}</div>
@@ -62,6 +108,7 @@ function imageSlide(p,m,b){
   const constituency=b.jurisdiction||'Karachuonyo Constituency';
   return {
     duration:Math.max(9000,(m.duration||12)*1000),
+    ticker:projectTicker(p,b,m.caption?`Photo: ${trim(m.caption,90)}`:''),
     html:`<section class="slide clean-media-slide">
       <div class="media-copy">
         <div class="eyebrow">${esc(p.sector)} · ${esc(ward)}</div>
@@ -109,6 +156,7 @@ function constituencyPulseSlide(data,b){
 
   return {
     duration:11000,
+    ticker:generalTicker(data,b),
     html:`<section class="slide pulse-slide">
       <div class="pulse-head">
         <div class="pulse-title">
@@ -155,6 +203,7 @@ function build(data){
 
   slides=[{
     duration:Math.max(7000,(b.tv_intro_duration_seconds||9)*1000),
+    ticker:generalTicker(data,b),
     html:`<section class="slide hero-slide active">
       <div class="hero-copy">
         <div class="eyebrow">${esc(b.tv_intro_kicker||'KARACHUONYO CONSTITUENCY IMPACT')}</div>
@@ -181,6 +230,7 @@ function build(data){
     const summary=bi(p.summary,p.summary_local,'p',142);
     slides.push({
       duration:9000,
+      ticker:projectTicker(p,b),
       html:`<section class="slide record-slide">
         <div class="record-layout">
           <div>
@@ -209,6 +259,7 @@ function build(data){
       }).join('');
       slides.push({
         duration:9000,
+        ticker:projectTicker(p,b,p.impacts?.length?`Impact focus: ${trim(pick(p.impacts[0].en,p.impacts[0].local),100)}`:''),
         html:`<section class="slide impact-slide">
           <div class="eyebrow">PROJECT IMPACT · ${esc(wardLabel(p))}</div>
           <h2>What is changing on the ground.</h2>
@@ -222,6 +273,7 @@ function build(data){
 
   slides.push({
     duration:9000,
+    ticker:generalTicker(data,b),
     html:`<section class="slide closing-slide">
       <div class="eyebrow">PUBLIC IMPACT RECORD</div>
       <h2>See the project.<br>Explore the evidence.</h2>
@@ -250,6 +302,7 @@ function activate(index){
       else{vid.pause()}
     }
   });
+  setTicker(slides[index]?.ticker || generalTicker(dataCache||{},dataCache?.brand||{}));
   const slideNo=document.getElementById('slideNo');
   if(slideNo)slideNo.textContent=`${index+1} / ${nodes.length}`;
   const bar=document.getElementById('progressBar');
