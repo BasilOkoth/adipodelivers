@@ -85,25 +85,23 @@ function imageSlide(p,m,b){
   const caption=bi(m.caption||p.summary,m.caption_local||p.summary_local,'p',105);
   const loc=pick(m.location||p.location,m.location_local||p.location_local);
   const ward=wardLabel(p);
-  const constituency=b.jurisdiction||'Karachuonyo Constituency';
   return {
     duration:Math.max(9000,(m.duration||12)*1000),
     ticker:projectTicker(p,b,m.caption||''),
-    html:`<section class="slide clean-media-slide photo-media-slide">
-      <div class="media-copy">
+    html:`<section class="slide photo-story-slide">
+      <img class="photo-story-image" src="${esc(m.url)}" alt="${esc(m.title||p.short_title)}">
+      <div class="photo-story-overlay"></div>
+      <div class="photo-story-copy">
         <div class="eyebrow">${esc(p.sector)} · ${esc(ward)}</div>
-        ${title}${caption}
-        <ul class="story-bullets">
-          <li><span>Project site</span><b>${esc(trim(loc,82))}</b></li>
-          <li><span>Ward</span><b>${esc(ward)}</b></li>
-          <li><span>Area</span><b>${esc(constituency)}</b></li>
-        </ul>
+        ${title}
+        ${caption}
+        <div class="photo-story-location">
+          <span>PROJECT SITE</span>
+          <b>${esc(trim(loc,96))}</b>
+        </div>
       </div>
-      <div class="media-window photo-window">
-        <img class="photo-backdrop" src="${esc(m.url)}" alt="" aria-hidden="true">
-        <div class="photo-backdrop-shade"></div>
-        <img class="photo-main" src="${esc(m.url)}" alt="${esc(m.title||p.short_title)}">
-        <div class="photo-frame-glow"></div>
+      <div class="photo-story-credit">
+        <span>${esc(ward)}</span>
       </div>
     </section>`
   };
