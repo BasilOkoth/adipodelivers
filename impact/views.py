@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.utils.text import slugify
 from .models import Project, Ward, ProjectImpact, ProjectMedia, EvidenceDocument, SourcePost, TenantMembership
-from .forms import ProjectForm, ProjectMediaForm, EvidenceForm, WardForm, TenantBrandForm, TenantTVSettingsForm
+from .forms import ProjectForm, ProjectMediaForm, ProjectMediaBatchForm, EvidenceForm, WardForm, TenantBrandForm, TenantTVSettingsForm
 from .post_parser import parse_social_post
 
 
@@ -132,7 +132,7 @@ def post_to_tv_studio(request):
                         tenant=tenant, record_id=record_id, slug=slug, title=title[:240], title_local=title_local[:240], short_title=title[:160], short_title_local=short_title_local[:160],
                         ward=ward, sector=sector[:120], intervention=intervention[:240], intervention_local=intervention_local[:240], summary=summary, summary_local=summary_local,
                         project_location=location[:300], project_location_local=location_local[:300], verification_status=Project.Verification.SUBMITTED,
-                        source_label='Imported from social post · verification pending', source_url=source_url,
+                        source_label='Imported from public update', source_url=source_url, entry_source=Project.EntrySource.IMPORTED,
                         tv_enabled=True, published=(action == 'publish'), featured=False,
                     )
                     impacts = request.POST.getlist('impacts') or parsed.get('impacts', [])
@@ -314,7 +314,7 @@ def _dashboard_context(request, **extra):
 @tenant_staff_required
 def control_dashboard(request):
     tenant = request.tenant
-    projects = Project.objects.filter(tenant=tenant).select_related('ward').order_by('-updated_at')[:6]
+    projects = Project.objects.filter(tenant=tenant).select_related('ward').prefetch_related('media').order_by('-updated_at')[:6]
     pending = Project.objects.filter(tenant=tenant, verification_status=Project.Verification.SUBMITTED).select_related('ward')[:6]
     recent_media = ProjectMedia.objects.filter(project__tenant=tenant).select_related('project').order_by('-id')[:6]
     return render(request, 'impact/control/dashboard.html', _dashboard_context(
@@ -324,7 +324,7 @@ def control_dashboard(request):
 
 @tenant_staff_required
 def control_projects(request):
-    qs = Project.objects.filter(tenant=request.tenant).select_related('ward')
+    qs = Project.objects.filter(tenant=request.tenant).select_related('ward').prefetch_related('media')
     q = request.GET.get('q','').strip()
     status = request.GET.get('status','').strip()
     if q:
@@ -364,7 +364,89 @@ def control_project_edit(request, pk):
             return redirect('control-project-edit', pk=project.pk)
     else:
         form = ProjectForm(instance=project, tenant=request.tenant)
-    return render(request, 'impact/control/project_form.html', _dashboard_context(request, form=form, project=project, mode='edit'))
+    media_items = ProjectMedia.objects.filter(project=project).order_by('display_order','id')
+    media_batch_form = ProjectMediaBatchForm()
+    return render(request, 'impact/control/project_form.html', _dashboard_context(
+        request, form=form, project=project, mode='edit', media_items=media_items,
+        media_batch_form=media_batch_form
+    ))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_project_media_batch_upload(request, pk):
+    project = get_object_or_404(Project, pk=pk, tenant=request.tenant)
+    if request.method != 'POST':
+        return redirect('control-project-edit', pk=project.pk)
+
+    form = ProjectMediaBatchForm(request.POST, request.FILES)
+    if not form.is_valid():
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f'{field}: {error}')
+        return redirect('control-project-edit', pk=project.pk)
+
+    files = form.cleaned_data['files']
+    caption = form.cleaned_data.get('caption', '').strip()
+    location_label = form.cleaned_data.get('location_label', '').strip() or project.project_location
+    evidence_status = form.cleaned_data['evidence_status']
+    tv_enabled = form.cleaned_data.get('tv_enabled', False)
+    show_location_overlay = form.cleaned_data.get('show_location_overlay', False)
+    has_cover = ProjectMedia.objects.filter(project=project, is_cover=True).exists()
+    last_order = ProjectMedia.objects.filter(project=project).order_by('-display_order').values_list('display_order', flat=True).first() or 0
+
+    created = 0
+    for offset, uploaded in enumerate(files, start=1):
+        content_type = (getattr(uploaded, 'content_type', '') or '').lower()
+        name = uploaded.name or f'asset-{offset}'
+        is_video = content_type.startswith('video/') or name.lower().endswith(('.mp4','.mov','.m4v','.webm','.avi'))
+        media_type = ProjectMedia.MediaType.VIDEO if is_video else ProjectMedia.MediaType.IMAGE
+        asset = ProjectMedia.objects.create(
+            project=project, media_type=media_type, title=name.rsplit('.', 1)[0].replace('_',' ').replace('-',' ').strip().title(),
+            caption=caption, location_label=location_label, local_file=uploaded,
+            tv_enabled=tv_enabled, show_location_overlay=show_location_overlay,
+            display_order=last_order + offset, evidence_status=evidence_status,
+            is_cover=(not has_cover and not is_video),
+        )
+        if asset.local_file and not asset.original_s3_key:
+            asset.original_s3_key = asset.local_file.name
+            asset.save(update_fields=['original_s3_key'])
+        if asset.is_cover:
+            has_cover = True
+        created += 1
+
+    messages.success(request, f'{created} media asset{"s" if created != 1 else ""} uploaded to this project.')
+    return redirect('control-project-edit', pk=project.pk)
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_project_media_set_cover(request, pk, media_id):
+    project = get_object_or_404(Project, pk=pk, tenant=request.tenant)
+    media = get_object_or_404(ProjectMedia, pk=media_id, project=project)
+    if request.method == 'POST' and media.media_type == ProjectMedia.MediaType.IMAGE:
+        ProjectMedia.objects.filter(project=project, is_cover=True).update(is_cover=False)
+        media.is_cover = True
+        media.save(update_fields=['is_cover'])
+        messages.success(request, 'Project cover photo updated.')
+    return redirect('control-project-edit', pk=project.pk)
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_project_media_delete(request, pk, media_id):
+    project = get_object_or_404(Project, pk=pk, tenant=request.tenant)
+    media = get_object_or_404(ProjectMedia, pk=media_id, project=project)
+    if request.method == 'POST':
+        was_cover = media.is_cover
+        media.delete()
+        if was_cover:
+            replacement = ProjectMedia.objects.filter(project=project, media_type=ProjectMedia.MediaType.IMAGE).order_by('display_order','id').first()
+            if replacement:
+                replacement.is_cover = True
+                replacement.save(update_fields=['is_cover'])
+        messages.success(request, 'Media asset removed.')
+    return redirect('control-project-edit', pk=project.pk)
 
 
 @tenant_staff_required

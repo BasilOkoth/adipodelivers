@@ -1,1 +1,86 @@
-{% extends 'impact/control/base.html' %}{% block title %}{% if mode == 'create' %}New project{% else %}Edit project{% endif %}{% endblock %}{% block top_title %}Project Editor{% endblock %}{% block content %}<div class="hero"><div><div class="eyebrow">{% if mode == 'create' %}NEW RECORD{% else %}{{ project.record_id }}{% endif %}</div><h2>{% if mode == 'create' %}Add a development project{% else %}Edit {{ project.short_title|default:project.title }}{% endif %}</h2><p>Keep the public record factual, location-specific and evidence-ready. Dholuo fields are optional and fall back to English.</p></div>{% if project %}<a class="btn danger" href="{% url 'control-project-delete' project.pk %}">Delete</a>{% endif %}</div><form method="post" class="card"><div class="card-body">{% csrf_token %}{% if form.non_field_errors %}<div class="message error">{{ form.non_field_errors }}</div>{% endif %}<div class="form-grid">{% for field in form %}<div class="form-group {% if field.name == 'summary' or field.name == 'summary_local' or field.name == 'project_location' or field.name == 'project_location_local' %}full{% endif %}"><label>{{ field.label }}</label>{{ field }}{% if field.errors %}<small style="color:#f4aab4">{{ field.errors|striptags }}</small>{% endif %}</div>{% endfor %}</div></div><div class="card-head" style="justify-content:flex-end"><a class="btn" href="{% url 'control-projects' %}">Cancel</a><button class="btn primary">Save project</button></div></form>{% endblock %}
+{% extends 'impact/control/base.html' %}
+{% block title %}{% if mode == 'create' %}New project{% else %}{{ project.short_title|default:project.title }}{% endif %}{% endblock %}
+{% block top_title %}Project Studio{% endblock %}
+{% block content %}
+<div class="project-studio-head">
+  <div>
+    <div class="eyebrow">{% if mode == 'create' %}NEW FIELD STORY{% else %}{{ project.record_id }} · {{ project.get_entry_source_display }}{% endif %}</div>
+    <h2>{% if mode == 'create' %}Build a project story{% else %}{{ project.short_title|default:project.title }}{% endif %}</h2>
+    <p>{% if mode == 'create' %}Start with the facts. After saving, you can upload many photos and videos in one batch.{% else %}Everything for this project lives here: narrative, field media, publication, TV and evidence-ready details.{% endif %}</p>
+  </div>
+  {% if project %}<div class="studio-head-actions"><a class="btn" href="{{ project.get_absolute_url }}" target="_blank">Public view ↗</a><a class="btn danger" href="{% url 'control-project-delete' project.pk %}">Delete</a></div>{% endif %}
+</div>
+
+<form method="post" class="studio-form panel">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="message error">{{ form.non_field_errors }}</div>{% endif %}
+
+  <section class="studio-section">
+    <div class="studio-section-intro"><span>01</span><h3>Story identity</h3><p>Give the project a clear title, sector and location people immediately understand.</p></div>
+    <div class="studio-fields grid-2-fields">
+      <div class="field wide"><label>Full project title</label>{{ form.title }}{{ form.title.errors }}</div>
+      <div class="field"><label>TV / card title</label>{{ form.short_title }}{{ form.short_title.errors }}</div>
+      <div class="field"><label>Ward / area</label>{{ form.ward }}{{ form.ward.errors }}</div>
+      <div class="field"><label>Sector</label>{{ form.sector }}{{ form.sector.errors }}</div>
+      <div class="field wide"><label>Project location / route</label>{{ form.project_location }}{{ form.project_location.errors }}</div>
+      <div class="field"><label>Latitude</label>{{ form.latitude }}</div><div class="field"><label>Longitude</label>{{ form.longitude }}</div>
+    </div>
+  </section>
+
+  <section class="studio-section">
+    <div class="studio-section-intro"><span>02</span><h3>What changed?</h3><p>Write for a resident, not for a database. Explain the intervention and why it matters.</p></div>
+    <div class="studio-fields grid-2-fields">
+      <div class="field wide"><label>Intervention</label>{{ form.intervention }}</div>
+      <div class="field wide"><label>Public summary</label>{{ form.summary }}{{ form.summary.errors }}</div>
+      <details class="advanced wide"><summary>Local-language copy</summary><div class="advanced-grid"><div class="field"><label>Local title</label>{{ form.title_local }}</div><div class="field"><label>Local TV title</label>{{ form.short_title_local }}</div><div class="field wide"><label>Local intervention</label>{{ form.intervention_local }}</div><div class="field wide"><label>Local summary</label>{{ form.summary_local }}</div><div class="field wide"><label>Local location</label>{{ form.project_location_local }}</div></div></details>
+    </div>
+  </section>
+
+  <section class="studio-section">
+    <div class="studio-section-intro"><span>03</span><h3>Delivery facts</h3><p>Capture dates, public investment and implementation information without cluttering the public story.</p></div>
+    <div class="studio-fields grid-3-fields">
+      <div class="field"><label>Start date</label>{{ form.start_date }}</div><div class="field"><label>Completion date</label>{{ form.completion_date }}</div><div class="field"><label>Beneficiaries</label>{{ form.beneficiaries }}</div>
+      <div class="field"><label>Budget</label>{{ form.budget }}</div><div class="field"><label>Funding source</label>{{ form.funding_source }}</div><div class="field"><label>Implementing agency</label>{{ form.implementing_agency }}</div>
+    </div>
+  </section>
+
+  <section class="studio-section">
+    <div class="studio-section-intro"><span>04</span><h3>Publishing controls</h3><p>Separate how the record entered the system from whether it is verified, featured or live on TV.</p></div>
+    <div class="studio-fields grid-3-fields">
+      <div class="field"><label>Entry source</label>{{ form.entry_source }}</div><div class="field"><label>Verification</label>{{ form.verification_status }}</div><div class="field"><label>Story priority</label>{{ form.story_priority }}</div>
+      <div class="field"><label>Source label</label>{{ form.source_label }}</div><div class="field wide-2"><label>Source URL</label>{{ form.source_url }}</div>
+      <label class="toggle-row">{{ form.published }}<span><b>Public website</b><small>Show this project publicly</small></span></label>
+      <label class="toggle-row">{{ form.tv_enabled }}<span><b>Live TV</b><small>Include in TV rotation</small></span></label>
+      <label class="toggle-row">{{ form.featured }}<span><b>Featured</b><small>Give stronger placement</small></span></label>
+    </div>
+  </section>
+
+  <div class="studio-save"><div><b>{% if mode == 'create' %}Save first, then add the field gallery.{% else %}Changes update the public story after save.{% endif %}</b><small>Keep factual records and campaign messaging separate.</small></div><div><a class="btn" href="{% url 'control-projects' %}">Back</a><button class="btn primary large">{% if mode == 'create' %}Create project & continue{% else %}Save project{% endif %}</button></div></div>
+</form>
+
+{% if project %}
+<section class="media-studio panel" id="media">
+  <div class="media-studio-head"><div><span class="panel-kicker">FIELD GALLERY</span><h3>Upload several photos & videos at once</h3><p>Drop an entire field visit here. The first image becomes the project cover automatically; you can change it below.</p></div><span class="media-count">{{ media_items|length }} ASSETS</span></div>
+  <form action="{% url 'control-project-media-batch-upload' project.pk %}" method="post" enctype="multipart/form-data" class="batch-upload">{% csrf_token %}
+    <label class="dropzone" for="id_files"><strong>＋ Add field media</strong><span>Select multiple photos and videos from the same project visit</span>{{ media_batch_form.files }}</label>
+    <div class="batch-fields"><div class="field"><label>Shared caption (optional)</label>{{ media_batch_form.caption }}</div><div class="field"><label>Where were these taken?</label>{{ media_batch_form.location_label }}</div><div class="field"><label>Evidence state</label>{{ media_batch_form.evidence_status }}</div></div>
+    <div class="batch-controls"><label>{{ media_batch_form.tv_enabled }} Add assets to TV rotation</label><label>{{ media_batch_form.show_location_overlay }} Show location overlay</label><button class="btn primary large">Upload batch</button></div>
+  </form>
+
+  <div class="asset-grid">
+  {% for m in media_items %}
+    <article class="asset-card {% if m.is_cover %}cover{% endif %}">
+      <div class="asset-preview">
+        {% if m.media_type == 'image' and m.local_file %}<img src="{{ m.local_file.url }}" alt="{{ m.title }}">{% elif m.media_type == 'video' %}<div class="video-tile"><span>▶</span><b>VIDEO</b></div>{% else %}<div class="video-tile"><b>MEDIA</b></div>{% endif %}
+        {% if m.is_cover %}<span class="cover-badge">PROJECT COVER</span>{% endif %}
+      </div>
+      <div class="asset-copy"><b>{{ m.title }}</b><span>{{ m.caption|default:m.location_label|default:'No caption yet'|truncatechars:72 }}</span><small>{{ m.get_media_type_display }} · {{ m.get_evidence_status_display }}</small></div>
+      <div class="asset-actions">
+        {% if m.media_type == 'image' and not m.is_cover %}<form method="post" action="{% url 'control-project-media-set-cover' project.pk m.pk %}">{% csrf_token %}<button class="btn">Make cover</button></form>{% endif %}
+        <form method="post" action="{% url 'control-project-media-delete' project.pk m.pk %}" onsubmit="return confirm('Remove this asset?')">{% csrf_token %}<button class="btn danger">Remove</button></form>
+      </div>
+    </article>
+  {% empty %}<div class="empty-state wide">No field media yet. Select several photos above and upload them together.</div>{% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

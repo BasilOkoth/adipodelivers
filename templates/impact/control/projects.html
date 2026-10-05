@@ -1,1 +1,39 @@
-{% extends 'impact/control/base.html' %}{% block title %}Projects{% endblock %}{% block top_title %}Projects{% endblock %}{% block content %}<div class="hero"><div><div class="eyebrow">PROJECT RECORDS</div><h2>Development portfolio</h2><p>Manage every published, draft and verification-pending project for this tenant.</p></div><a class="btn primary" href="{% url 'control-project-create' %}">+ New project</a></div><section class="card"><div class="card-head"><form style="display:flex;gap:8px;width:100%"><input name="q" value="{{ q }}" placeholder="Search project, record ID or location"><select name="status" style="max-width:210px"><option value="">All verification states</option><option value="submitted" {% if status == 'submitted' %}selected{% endif %}>Submitted</option><option value="verified" {% if status == 'verified' %}selected{% endif %}>Verified</option><option value="demo" {% if status == 'demo' %}selected{% endif %}>Demo</option></select><button class="btn">Filter</button></form></div><div class="table-wrap"><table><thead><tr><th>Record</th><th>Project</th><th>Area</th><th>Sector</th><th>TV</th><th>Verification</th><th></th></tr></thead><tbody>{% for p in projects %}<tr><td><span class="tag">{{ p.record_id }}</span></td><td><b>{{ p.short_title|default:p.title }}</b><div class="muted">{{ p.project_location|truncatechars:64 }}</div></td><td>{{ p.ward.name }}</td><td>{{ p.sector }}</td><td>{% if p.tv_enabled %}●{% else %}—{% endif %}</td><td><span class="tag {% if p.verification_status == 'verified' %}verified{% else %}pending{% endif %}">{{ p.get_verification_status_display }}</span></td><td><a class="btn" href="{% url 'control-project-edit' p.pk %}">Edit</a></td></tr>{% empty %}<tr><td colspan="7" class="empty">No projects found.</td></tr>{% endfor %}</tbody></table></div></section>{% endblock %}
+{% extends 'impact/control/base.html' %}
+{% block title %}Project Portfolio{% endblock %}
+{% block top_title %}Project Portfolio{% endblock %}
+{% block content %}
+<div class="portfolio-hero">
+  <div><div class="eyebrow">FIELD PORTFOLIO</div><h2>Every project should feel<br>like a complete story.</h2><p>Manage location, narrative, multiple photos and videos, evidence, publication and TV placement from one project workspace.</p></div>
+  <a class="btn primary large" href="{% url 'control-project-create' %}">+ New project story</a>
+</div>
+
+<form class="filter-bar" method="get">
+  <input name="q" value="{{ q }}" placeholder="Search project, record ID, ward or location">
+  <select name="status"><option value="">All verification states</option><option value="submitted" {% if status == 'submitted' %}selected{% endif %}>Pending review</option><option value="verified" {% if status == 'verified' %}selected{% endif %}>Verified</option><option value="demo" {% if status == 'demo' %}selected{% endif %}>Demo</option></select>
+  <button class="btn">Search</button>
+</form>
+
+<div class="project-card-grid">
+{% for p in projects %}
+  <article class="project-card">
+    <div class="project-card-visual">
+      {% with cover=p.media.all|first %}
+        {% if cover and cover.local_file and cover.media_type == 'image' %}<img src="{{ cover.local_file.url }}" alt="{{ p.short_title|default:p.title }}">{% else %}<div class="project-fallback"><span>{{ p.sector|slice:':1' }}</span><small>ADD FIELD PHOTOS</small></div>{% endif %}
+      {% endwith %}
+      <div class="project-card-badges"><span>{{ p.ward.name }}</span>{% if p.featured %}<span class="gold">FEATURED</span>{% endif %}</div>
+    </div>
+    <div class="project-card-body">
+      <div class="project-meta"><span>{{ p.sector }}</span><span>{{ p.record_id }}</span></div>
+      <h3>{{ p.short_title|default:p.title }}</h3>
+      <p>{{ p.summary|truncatechars:120 }}</p>
+      <div class="project-health">
+        <span><b>{{ p.media.all|length }}</b> media</span>
+        <span class="{% if p.verification_status == 'verified' %}good{% else %}warn{% endif %}">{{ p.get_verification_status_display }}</span>
+        <span>{% if p.tv_enabled %}TV ON{% else %}TV OFF{% endif %}</span>
+      </div>
+      <div class="project-card-actions"><a class="btn primary" href="{% url 'control-project-edit' p.pk %}">Open studio</a><a class="btn" href="{{ p.get_absolute_url }}" target="_blank">Public view ↗</a></div>
+    </div>
+  </article>
+{% empty %}<div class="empty-state wide">No projects found. Create the first project story.</div>{% endfor %}
+</div>
+{% endblock %}

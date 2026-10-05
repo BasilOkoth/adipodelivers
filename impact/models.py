@@ -119,6 +119,16 @@ class Ward(models.Model):
 
 
 class Project(models.Model):
+    class EntrySource(models.TextChoices):
+        MANUAL = 'manual', 'Manual entry'
+        IMPORTED = 'imported', 'Imported from update'
+        SEEDED = 'seeded', 'Seeded / starter record'
+
+    class StoryPriority(models.TextChoices):
+        STANDARD = 'standard', 'Standard'
+        FEATURED = 'featured', 'Featured'
+        FLAGSHIP = 'flagship', 'Flagship'
+
     class Verification(models.TextChoices):
         SUBMITTED = 'submitted', 'Submitted · verification pending'
         VERIFIED = 'verified', 'Verified'
@@ -150,6 +160,8 @@ class Project(models.Model):
     verification_status = models.CharField(max_length=20, choices=Verification.choices, default=Verification.SUBMITTED)
     source_label = models.CharField(max_length=180, blank=True)
     source_url = models.URLField(blank=True)
+    entry_source = models.CharField(max_length=20, choices=EntrySource.choices, default=EntrySource.MANUAL)
+    story_priority = models.CharField(max_length=20, choices=StoryPriority.choices, default=StoryPriority.STANDARD)
     tv_enabled = models.BooleanField(default=True)
     published = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
@@ -214,6 +226,8 @@ class ProjectMedia(models.Model):
     show_location_overlay = models.BooleanField(default=True)
     display_order = models.PositiveIntegerField(default=0)
     evidence_status = models.CharField(max_length=20, choices=Evidence.choices, default=Evidence.SUBMITTED)
+    is_cover = models.BooleanField(default=False)
+    uploaded_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def playback_url(self):
         if self.hls_manifest_url: return self.hls_manifest_url
@@ -222,7 +236,7 @@ class ProjectMedia(models.Model):
         return ''
 
     def __str__(self): return f'{self.project.short_title or self.project.title} — {self.title}'
-    class Meta: ordering = ['display_order', 'id']
+    class Meta: ordering = ['-is_cover', 'display_order', 'id']
 
 
 class EvidenceDocument(models.Model):
@@ -232,7 +246,7 @@ class EvidenceDocument(models.Model):
     external_url = models.URLField(blank=True)
     source_organization = models.CharField(max_length=180, blank=True)
     verified = models.BooleanField(default=False)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     def __str__(self): return self.title
 
 

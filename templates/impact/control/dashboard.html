@@ -1,1 +1,57 @@
-{% extends 'impact/control/base.html' %}{% block title %}Overview{% endblock %}{% block top_title %}Command Centre{% endblock %}{% block content %}<div class="hero"><div><div class="eyebrow">LIVE OPERATIONS</div><h2>{{ tenant.display_name }}<br>Impact Command Centre</h2><p>One workspace for development records, television content, media, evidence and public accountability.</p></div><a class="btn primary" href="{% url 'control-project-create' %}">+ Add project</a></div><div class="stats"><div class="stat"><small>Projects</small><strong>{{ project_count }}</strong><span class="muted">{{ published_count }} published</span></div><div class="stat"><small>TV stories</small><strong>{{ tv_count }}</strong><span class="muted">live in playlist</span></div><div class="stat"><small>Awaiting verification</small><strong>{{ verification_count }}</strong><span class="muted">records to review</span></div><div class="stat"><small>Media assets</small><strong>{{ media_count }}</strong><span class="muted">photos & videos</span></div></div><div class="grid-2"><section class="card"><div class="card-head"><h3>Recent projects</h3><a class="muted" href="{% url 'control-projects' %}">View all →</a></div><div class="table-wrap"><table><thead><tr><th>Record</th><th>Project</th><th>Ward</th><th>Status</th></tr></thead><tbody>{% for p in projects %}<tr><td><span class="tag">{{ p.record_id }}</span></td><td><a href="{% url 'control-project-edit' p.pk %}"><b>{{ p.short_title|default:p.title }}</b></a><div class="muted">{{ p.sector }}</div></td><td>{{ p.ward.name }}</td><td><span class="tag {% if p.verification_status == 'verified' %}verified{% else %}pending{% endif %}">{{ p.get_verification_status_display }}</span></td></tr>{% empty %}<tr><td colspan="4" class="empty">No projects yet.</td></tr>{% endfor %}</tbody></table></div></section><section class="card"><div class="card-head"><h3>Quick actions</h3></div><div class="card-body"><div class="quick"><a href="{% url 'post-to-tv-studio' %}"><b>✦ Post-to-TV</b><span>Convert a social update into a TV story</span></a><a href="{% url 'control-media-create' %}"><b>▶ Upload media</b><span>Add a project photo or video</span></a><a href="{% url 'control-evidence-create' %}"><b>✓ Add evidence</b><span>Attach a document or verification source</span></a><a href="{% url 'tv' %}" target="_blank"><b>◉ Open live TV</b><span>Preview the current broadcast</span></a></div></div></section></div>{% endblock %}
+{% extends 'impact/control/base.html' %}
+{% block title %}Command Centre{% endblock %}
+{% block top_title %}Command Centre{% endblock %}
+{% block content %}
+<section class="command-hero">
+  <div class="command-hero-copy">
+    <div class="eyebrow">FIELD OPERATIONS · LIVE</div>
+    <h2>One place to turn field work<br>into visible public impact.</h2>
+    <p>Capture projects, upload field photos in batches, verify evidence and publish a polished story across the website and TV experience.</p>
+    <div class="hero-actions">
+      <a class="btn primary large" href="{% url 'control-project-create' %}">+ Build a project story</a>
+      <a class="btn large" href="{% url 'post-to-tv-studio' %}">✦ Convert an update</a>
+    </div>
+  </div>
+  <div class="command-live-card">
+    <span>NOW</span><b>{{ published_count }}</b><strong>published project records</strong>
+    <div class="signal"><i></i> Impact channel online</div>
+  </div>
+</section>
+
+<section class="metric-ribbon">
+  <div><span>PROJECTS</span><strong>{{ project_count }}</strong><small>{{ published_count }} public</small></div>
+  <div><span>MEDIA</span><strong>{{ media_count }}</strong><small>photos & videos</small></div>
+  <div><span>REVIEW</span><strong>{{ verification_count }}</strong><small>need attention</small></div>
+  <div><span>WARDS</span><strong>{{ ward_count }}</strong><small>coverage areas</small></div>
+  <div><span>EVIDENCE</span><strong>{{ evidence_count }}</strong><small>supporting records</small></div>
+</section>
+
+<div class="dashboard-grid">
+  <section class="panel portfolio-panel">
+    <div class="panel-head"><div><span class="panel-kicker">LATEST FIELD STORIES</span><h3>Recent projects</h3></div><a href="{% url 'control-projects' %}">Open portfolio →</a></div>
+    <div class="project-strip">
+      {% for p in projects %}
+      <a class="mini-project" href="{% url 'control-project-edit' p.pk %}">
+        <div class="mini-project-media">
+          {% with cover=p.media.all|first %}
+            {% if cover and cover.local_file and cover.media_type == 'image' %}<img src="{{ cover.local_file.url }}" alt="">{% else %}<div class="media-placeholder">{{ p.ward.name|slice:':1' }}</div>{% endif %}
+          {% endwith %}
+          <span class="priority">{{ p.get_story_priority_display|default:'Standard' }}</span>
+        </div>
+        <div class="mini-project-copy"><small>{{ p.sector }} · {{ p.ward.name }}</small><b>{{ p.short_title|default:p.title }}</b><span>{{ p.project_location|truncatechars:72 }}</span></div>
+      </a>
+      {% empty %}<div class="empty-state">No project stories yet. Start with the first field record.</div>{% endfor %}
+    </div>
+  </section>
+
+  <section class="panel action-panel">
+    <div class="panel-head"><div><span class="panel-kicker">FAST WORKFLOW</span><h3>What do you want to do?</h3></div></div>
+    <div class="action-stack">
+      <a href="{% url 'control-project-create' %}"><i>01</i><div><b>Create a project</b><span>Start with location, sector and a clear story.</span></div><em>→</em></a>
+      <a href="{% url 'post-to-tv-studio' %}"><i>02</i><div><b>Turn a field update into a story</b><span>Structure an existing social update for publication.</span></div><em>→</em></a>
+      <a href="{% url 'control-verification' %}"><i>03</i><div><b>Review evidence</b><span>Move records from pending to verified.</span></div><em>→</em></a>
+      <a href="{% url 'control-tv-settings' %}"><i>04</i><div><b>Direct the live TV</b><span>Control portrait, ticker, branding and screen experience.</span></div><em>→</em></a>
+    </div>
+  </section>
+</div>
+{% endblock %}

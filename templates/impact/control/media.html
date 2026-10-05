@@ -1,1 +1,21 @@
-{% extends 'impact/control/base.html' %}{% block title %}Media{% endblock %}{% block top_title %}Media Library{% endblock %}{% block content %}<div class="hero"><div><div class="eyebrow">PHOTO + VIDEO</div><h2>Media library</h2><p>Project visuals used by the website and television channel. Each clip can carry its exact location.</p></div><a class="btn primary" href="{% url 'control-media-create' %}">+ Upload media</a></div><section class="card"><div class="table-wrap"><table><thead><tr><th>Asset</th><th>Project</th><th>Type</th><th>Location</th><th>TV</th><th>Evidence</th></tr></thead><tbody>{% for m in media_items %}<tr><td><b>{{ m.title }}</b></td><td>{{ m.project.short_title|default:m.project.title }}</td><td>{{ m.get_media_type_display }}</td><td>{{ m.location_label|default:m.project.project_location }}</td><td>{% if m.tv_enabled %}●{% else %}—{% endif %}</td><td><span class="tag {% if m.evidence_status == 'verified' %}verified{% else %}pending{% endif %}">{{ m.get_evidence_status_display }}</span></td></tr>{% empty %}<tr><td colspan="6" class="empty">No media uploaded yet.</td></tr>{% endfor %}</tbody></table></div></section>{% endblock %}
+{% extends 'impact/control/base.html' %}
+{% block title %}Field Media{% endblock %}
+{% block top_title %}Field Media{% endblock %}
+{% block content %}
+<div class="portfolio-hero">
+  <div><div class="eyebrow">PHOTO + VIDEO ARCHIVE</div><h2>Field media should be organised<br>around projects, not loose files.</h2><p>Use each project’s Studio to upload entire batches of photos and videos. This library gives you a cross-project view of what is available.</p></div>
+  <a class="btn primary large" href="{% url 'control-projects' %}">Choose project to upload →</a>
+</div>
+<div class="asset-grid global-assets">
+{% for m in media_items %}
+<article class="asset-card {% if m.is_cover %}cover{% endif %}">
+  <div class="asset-preview">
+    {% if m.media_type == 'image' and m.local_file %}<img src="{{ m.local_file.url }}" alt="{{ m.title }}">{% elif m.media_type == 'video' %}<div class="video-tile"><span>▶</span><b>VIDEO</b></div>{% else %}<div class="video-tile"><b>MEDIA</b></div>{% endif %}
+    {% if m.is_cover %}<span class="cover-badge">PROJECT COVER</span>{% endif %}
+  </div>
+  <div class="asset-copy"><b>{{ m.title }}</b><span>{{ m.project.short_title|default:m.project.title }}</span><small>{{ m.location_label|default:m.project.project_location|truncatechars:65 }}</small></div>
+  <div class="asset-actions"><a class="btn" href="{% url 'control-project-edit' m.project.pk %}#media">Open project</a></div>
+</article>
+{% empty %}<div class="empty-state wide">No field media yet. Open a project and upload a full batch.</div>{% endfor %}
+</div>
+{% endblock %}
