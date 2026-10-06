@@ -37,14 +37,8 @@ html,body{
 .header-center{display:flex;justify-content:center;align-items:center;gap:22px;color:#d9dee4}
 .header-center span{font:700 12px Inter;letter-spacing:.22em}
 .header-center i{width:2px;height:18px;background:var(--accent);display:block}
-.header-right{display:flex;align-items:center;gap:12px}
-.live-badge{
-  display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:8px;
-  background:linear-gradient(180deg,#cf171f,#a80f15);box-shadow:0 8px 24px rgba(189,15,22,.22);
-  font:900 16px Manrope;letter-spacing:.08em
-}
-.live-badge span{width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.08)}
-.header-qr{width:58px;height:58px;background:#fff;padding:4px;border-radius:8px}
+.header-right{display:flex;align-items:center;justify-content:flex-end;justify-self:end;margin-left:auto}
+.header-qr{width:68px;height:68px;display:block;background:#fff;padding:4px;border-radius:10px;margin-left:auto}
 
 #stage{position:relative;overflow:hidden;background:#06080b}
 .slide{

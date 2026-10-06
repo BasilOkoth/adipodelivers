@@ -123,21 +123,6 @@ function splitProjectSlide(p,m,b){
   };
 }
 
-function impactSlide(p,b){
-  if(!p.impacts?.length)return null;
-  const cards=p.impacts.slice(0,3).map((x,n)=>`
-    <div class="impact-card"><strong>0${n+1}</strong><span>${esc(trim(pick(x.en,x.local),100))}</span></div>`).join('');
-  return {
-    duration:9000,
-    ticker:projectTicker(p,b,'Project impact and results'),
-    html:`<section class="slide impact-slide">
-      <div class="eyebrow">PROJECT IMPACT · ${esc(wardLabel(p))}</div>
-      <h2>What is changing on the ground.</h2>
-      <div class="impact-grid">${cards}</div>
-    </section>`
-  };
-}
-
 function build(data){
   dataCache=data;
   const b=data.brand||{};
@@ -206,9 +191,6 @@ function build(data){
         </section>`
       });
     });
-
-    const impact=impactSlide(p,b);
-    if(impact)slides.push(impact);
   });
 
   slides.push({
