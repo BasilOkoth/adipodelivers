@@ -1,0 +1,78 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050608">
+  <title>Adipo Delivers TV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'impact/css/tv.css' %}">
+  <style>
+    :root{
+      --brand-primary:{{ tenant.primary_color|default:'#090b10' }};
+      --brand-accent:{{ tenant.accent_color|default:'#d61f26' }};
+    }
+  </style>
+</head>
+<body>
+<div class="tv-shell">
+
+  <header class="tv-header">
+    <div class="brand">
+      <div class="brand-logo{% if not tenant.logo %} fallback{% endif %}">
+        {% if tenant.logo %}
+          <img src="{{ tenant.logo.url }}" alt="Adipo Delivers logo"
+               onerror="this.style.display='none';this.parentElement.classList.add('fallback');">
+        {% endif %}
+        <span>AD</span>
+      </div>
+      <div class="brand-text">
+        <strong>ADIPO DELIVERS</strong>
+        <small>KARACHUONYO CONSTITUENCY IMPACT</small>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <span>PEOPLE</span><i></i><span>PROJECTS</span><i></i><span>PROGRESS</span>
+    </div>
+
+    <div class="header-right">
+      <div class="live-badge"><span></span> IMPACT TV • LIVE</div>
+      {% if tenant.tv_show_qr %}
+        <img class="header-qr" src="{% url 'tenant-qr' %}" alt="QR code">
+      {% endif %}
+    </div>
+  </header>
+
+  <main id="stage">
+    <div class="loading">Loading impact channel…</div>
+  </main>
+
+  <footer class="tv-footer">
+    <div class="live-label"><span></span> IMPACT LIVE</div>
+    {% if tenant.tv_show_ticker %}
+      <div class="ticker-window">
+        <div id="tickerText" class="ticker-track">
+          {{ tenant.tv_ticker_text|default:'Projects • Locations • Progress • Evidence' }}
+        </div>
+      </div>
+    {% endif %}
+    {% if tenant.tv_show_clock %}
+      <div class="footer-clock">
+        <strong id="clock"></strong>
+        <small id="dateLabel"></small>
+      </div>
+    {% endif %}
+  </footer>
+</div>
+
+<script>
+window.TV_PLAYLIST_URL="{% url 'tv-playlist-api' %}?lang={{ lang_mode }}";
+window.TV_LANGUAGE_MODE="{{ lang_mode }}";
+</script>
+<script src="{% static 'impact/js/tv-django.js' %}"></script>
+</body>
+</html>
