@@ -1,6 +1,7 @@
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const stage=document.getElementById('stage');
 let slides=[],nodes=[],i=0,timer=null,dataCache=null;
+let soundEnabled=false;
 
 const trim=(s,n=160)=>{s=String(s||'').replace(/\s+/g,' ').trim();return s.length>n?s.slice(0,n-1).trim()+'…':s};
 const clean=s=>String(s||'').replace(/\s+/g,' ').trim();
@@ -27,6 +28,28 @@ function updateClock(){
   if(dl)dl.textContent=d.toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
 }
 updateClock();setInterval(updateClock,1000);
+
+function updateSoundStatus(){
+  const box=document.getElementById('soundStatus');
+  const icon=document.getElementById('soundStatusIcon');
+  const text=document.getElementById('soundStatusText');
+  if(!box||!icon||!text)return;
+  box.classList.toggle('enabled',soundEnabled);
+  icon.textContent=soundEnabled?'🔊':'🔇';
+  text.textContent=soundEnabled?'Sound enabled':'Sound waiting';
+}
+function unlockSound(){
+  soundEnabled=true;
+  document.getElementById('soundGate')?.classList.add('hidden');
+  document.querySelectorAll('video').forEach(v=>{v.muted=false;v.volume=1.0;});
+  updateSoundStatus();
+  const video=nodes[i]?.querySelector('video');
+  if(video){video.muted=false;video.volume=1.0;video.play().catch(()=>{});}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('enableSoundBtn')?.addEventListener('click',unlockSound);
+  updateSoundStatus();
+});
 
 function projectTicker(p,b,extra=''){
   const impacts=(p.impacts||[]).slice(0,2).map(x=>pick(x.en,x.local)).filter(Boolean);
@@ -170,9 +193,10 @@ function build(data){
         ticker:projectTicker(p,b,m.caption||''),
         html:`<section class="slide project-split">
           <div class="project-photo-panel">
-            <video muted playsinline preload="auto" ${poster?`poster="${esc(poster)}"`:''} style="width:100%;height:100%;object-fit:cover">
+            <video class="project-video" playsinline preload="auto" ${poster?`poster="${esc(poster)}"`:''}>
               <source src="${esc(m.url)}" type="video/mp4">
             </video>
+            <div class="video-audio-badge">FULL AUDIO</div>
           </div>
           <div class="project-info-panel">
             <div class="info-top">
@@ -211,6 +235,7 @@ function build(data){
 
   stage.innerHTML=slides.map((s,idx)=>`<div class="slide-wrap" data-index="${idx}">${s.html}</div>`).join('');
   nodes=[...stage.querySelectorAll('.slide')];
+  document.querySelectorAll('video').forEach(v=>{v.muted=!soundEnabled;v.volume=soundEnabled?1.0:0.0;});
   i=0;activate(0);
 }
 
@@ -229,7 +254,7 @@ function activate(idx){
     const active=j===idx;
     n.classList.toggle('active',active);
     const v=n.querySelector('video');
-    if(v){if(active){v.currentTime=0;v.play().catch(()=>{})}else v.pause()}
+    if(v){if(active){v.currentTime=0;v.muted=!soundEnabled;v.volume=soundEnabled?1.0:0.0;v.play().catch(()=>{})}else{v.pause();v.currentTime=0}}
   });
   updateTicker(idx);
   clearTimeout(timer);
@@ -249,4 +274,5 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'){i=(i+1)%nodes.length;activate(i)}
   if(e.key==='ArrowLeft'){i=(i-1+nodes.length)%nodes.length;activate(i)}
   if(e.key.toLowerCase()==='f'){document.documentElement.requestFullscreen?.()}
+  if(e.key.toLowerCase()==='m'){soundEnabled=!soundEnabled;document.querySelectorAll('video').forEach(v=>{v.muted=!soundEnabled;v.volume=soundEnabled?1.0:0.0;});updateSoundStatus();}
 });

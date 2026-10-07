@@ -50,6 +50,15 @@
     <div class="loading">Loading impact channel…</div>
   </main>
 
+  <div id="soundGate" class="sound-gate" role="dialog" aria-modal="true" aria-label="Enable TV sound">
+    <div class="sound-card">
+      <div class="sound-icon">🔊</div>
+      <div><small>ADIPO DELIVERS TV</small><h2>Start TV with sound</h2><p>Click once to enable clear audio for project videos during this TV session.</p></div>
+      <button id="enableSoundBtn" type="button">START TV WITH SOUND</button>
+    </div>
+  </div>
+  <div class="sound-status" id="soundStatus"><span id="soundStatusIcon">🔇</span><span id="soundStatusText">Sound waiting</span></div>
+
   <footer class="tv-footer">
     <div class="live-label"><span></span> IMPACT LIVE</div>
     {% if tenant.tv_show_ticker %}
