@@ -1,5 +1,5 @@
 from django import forms
-from .models import Tenant, Ward, Project, ProjectMedia, EvidenceDocument
+from .models import Tenant, Ward, Project, ProjectMedia, EvidenceDocument, BursaryWardSummary
 
 
 class StyledModelForm(forms.ModelForm):
@@ -136,3 +136,39 @@ class TenantTVSettingsForm(StyledModelForm):
             'primary_color': forms.TextInput(attrs={'type': 'color'}),
             'accent_color': forms.TextInput(attrs={'type': 'color'}),
         }
+
+
+class BursaryWardSummaryForm(StyledModelForm):
+    class Meta:
+        model = BursaryWardSummary
+        fields = [
+            'ward','reporting_period','students_supported','amount_allocated',
+            'secondary_count','college_tvet_count','university_count',
+            'female_count','male_count','notes','verified','tv_enabled',
+        ]
+        widgets = {
+            'amount_allocated': forms.NumberInput(attrs={'step':'0.01','min':'0'}),
+            'students_supported': forms.NumberInput(attrs={'min':'0'}),
+            'secondary_count': forms.NumberInput(attrs={'min':'0'}),
+            'college_tvet_count': forms.NumberInput(attrs={'min':'0'}),
+            'university_count': forms.NumberInput(attrs={'min':'0'}),
+            'female_count': forms.NumberInput(attrs={'min':'0'}),
+            'male_count': forms.NumberInput(attrs={'min':'0'}),
+            'notes': forms.TextInput(attrs={'placeholder':'Optional factual note'}),
+        }
+
+    def __init__(self, *args, tenant=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if tenant is not None:
+            self.fields['ward'].queryset = Ward.objects.filter(tenant=tenant)
+
+    def clean(self):
+        cleaned = super().clean()
+        total = cleaned.get('students_supported') or 0
+        education = sum(cleaned.get(k) or 0 for k in ('secondary_count','college_tvet_count','university_count'))
+        gender = (cleaned.get('female_count') or 0) + (cleaned.get('male_count') or 0)
+        if education and education > total:
+            raise forms.ValidationError('Secondary + College/TVET + University cannot exceed total students supported.')
+        if gender and gender > total:
+            raise forms.ValidationError('Female + Male counts cannot exceed total students supported.')
+        return cleaned

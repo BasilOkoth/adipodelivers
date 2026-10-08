@@ -17,7 +17,6 @@ function bi(en,local,tag='div',max=170){
 function wardLabel(p){return pick(p.ward,p.ward_local)}
 function locationLabel(p){return pick(p.location,p.location_local)}
 function money(v){const n=Number(v);return Number.isFinite(n)&&n>0?`KES ${new Intl.NumberFormat('en-KE',{maximumFractionDigits:0}).format(n)}`:''}
-function dateLabel(v){if(!v)return '';const d=new Date(`${v}T00:00:00`);return Number.isNaN(d.getTime())?v:d.toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'})}
 function ticker(parts){return parts.map(clean).filter(Boolean).join('   •   ')}
 
 function updateClock(){
@@ -126,10 +125,8 @@ function splitProjectSlide(p,m,b){
           </div>
           <div class="status-pill">${esc(statusLabel(p))}</div>
         </div>
-
         <h2>${esc(trim(p.short_title||p.title,92))}</h2>
         <div class="project-summary">${esc(trim(m.caption||p.summary,220))}</div>
-
         <div class="details-block">
           <div class="details-title">PROJECT DETAILS</div>
           <div class="details-card">
@@ -162,6 +159,74 @@ function sloganTransition(b,jurisdiction){
         <div class="transition-slogan">${esc(slogan)}</div>
         <div class="transition-jurisdiction">${esc(jurisdiction)}</div>
       </div>
+    </section>`
+  };
+}
+
+function bursaryMoney(v){
+  const n=Number(v||0);
+  if(!Number.isFinite(n)||n<=0)return '—';
+  if(n>=1000000)return `KES ${(n/1000000).toFixed(n>=10000000?1:2).replace(/\.0+$/,'')}M`;
+  if(n>=1000)return `KES ${(n/1000).toFixed(0)}K`;
+  return `KES ${n.toLocaleString('en-KE')}`;
+}
+
+function bursaryOverviewSlide(data,b){
+  const x=data.bursary||{};
+  const periods=(x.periods||[]).join(' · ');
+  return {
+    duration:11000,
+    ticker:ticker([
+      `${Number(x.students||0).toLocaleString('en-KE')} students supported`,
+      `${x.wards_reached||0} wards`,
+      Number(x.amount||0)>0?`${bursaryMoney(x.amount)} verified bursary allocation`:'',
+      periods?`Reporting period: ${periods}`:'',
+      b.domain?`Explore: ${b.domain}`:''
+    ]),
+    html:`<section class="slide bursary-overview">
+      <div class="bursary-overview-copy">
+        <div class="bursary-kicker">EDUCATION SUPPORT · BURSARY IMPACT</div>
+        <h2>Investing in<br><span>Karachuonyo's future.</span></h2>
+        <p>Verified ward-level education support shown as aggregate public-impact figures.</p>
+        <div class="bursary-period">${esc(periods||'Current verified reporting period')}</div>
+      </div>
+      <div class="bursary-hero-metrics">
+        <div class="bursary-big-card primary"><small>STUDENTS SUPPORTED</small><strong>${Number(x.students||0).toLocaleString('en-KE')}</strong><span>Across verified ward records</span></div>
+        <div class="bursary-big-card"><small>VERIFIED ALLOCATION</small><strong>${esc(bursaryMoney(x.amount))}</strong><span>Education bursary support</span></div>
+        <div class="bursary-mini-grid">
+          <div><strong>${x.wards_reached||0}</strong><span>Wards reached</span></div>
+          <div><strong>${Number(x.secondary||0).toLocaleString('en-KE')}</strong><span>Secondary</span></div>
+          <div><strong>${Number(x.college_tvet||0).toLocaleString('en-KE')}</strong><span>College / TVET</span></div>
+          <div><strong>${Number(x.university||0).toLocaleString('en-KE')}</strong><span>University</span></div>
+        </div>
+      </div>
+    </section>`
+  };
+}
+
+function bursaryWardSlide(data,b){
+  const x=data.bursary||{}, rows=x.wards||[];
+  const max=Math.max(1,...rows.map(r=>Number(r.students||0)));
+  const bars=rows.map((r,idx)=>{
+    const width=Math.max(3,Math.round((Number(r.students||0)/max)*100));
+    return `<div class="ward-bursary-row">
+      <div class="ward-bursary-rank">${String(idx+1).padStart(2,'0')}</div>
+      <div class="ward-bursary-name"><b>${esc(r.ward)}</b><span>${esc(r.period||'')}</span></div>
+      <div class="ward-bursary-bar"><i style="width:${width}%"></i></div>
+      <div class="ward-bursary-count"><strong>${Number(r.students||0).toLocaleString('en-KE')}</strong><span>students</span></div>
+      <div class="ward-bursary-money">${Number(r.amount||0)>0?esc(bursaryMoney(r.amount)):'—'}</div>
+    </div>`;
+  }).join('');
+  return {
+    duration:12000,
+    ticker:ticker(rows.map(r=>`${r.ward}: ${Number(r.students||0).toLocaleString('en-KE')} students`).concat([b.domain?`More: ${b.domain}`:''])),
+    html:`<section class="slide bursary-wards">
+      <div class="bursary-ward-head">
+        <div><div class="bursary-kicker">WARD-BY-WARD BURSARY REACH</div><h2>Education support across the constituency.</h2></div>
+        <div class="bursary-total-chip"><strong>${Number(x.students||0).toLocaleString('en-KE')}</strong><span>Total students</span></div>
+      </div>
+      <div class="ward-bursary-list">${bars}</div>
+      <div class="bursary-footnote">Verified aggregate figures only · No individual student records displayed</div>
     </section>`
   };
 }
@@ -200,6 +265,11 @@ function build(data){
       </div>
     </section>`
   }];
+
+  if(data.bursary?.wards?.length){
+    slides.push(bursaryOverviewSlide(data,b));
+    slides.push(bursaryWardSlide(data,b));
+  }
 
   projects.forEach((p,projectIndex)=>{
     const images=(p.media||[]).filter(m=>m.type==='image'&&m.url);

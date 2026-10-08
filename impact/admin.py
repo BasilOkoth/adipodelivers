@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Tenant, TenantDomain, TenantMembership, Ward, Project, ProjectImpact,
-    ProjectMedia, EvidenceDocument, SourcePost
+    ProjectMedia, EvidenceDocument, SourcePost, BursaryWardSummary
 )
 
 
@@ -125,3 +125,10 @@ class ProjectMediaAdmin(TenantScopedAdminMixin, admin.ModelAdmin):
 class EvidenceDocumentAdmin(TenantScopedAdminMixin, admin.ModelAdmin):
     tenant_lookup = 'project__tenant'
     list_display = ('title', 'project', 'source_organization', 'verified', 'uploaded_at')
+
+
+@admin.register(BursaryWardSummary)
+class BursaryWardSummaryAdmin(TenantScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('ward','reporting_period','students_supported','amount_allocated','verified','tv_enabled')
+    list_filter = ('reporting_period','verified','tv_enabled','ward')
+    search_fields = ('ward__name','reporting_period','notes')

@@ -4,8 +4,6 @@ from django.urls import reverse
 from django.utils.text import slugify
 
 
-
-
 def tenant_branding_upload_to(instance, filename):
     slug = instance.slug or 'unassigned'
     return f'tenants/{slug}/branding/{filename}'
@@ -19,6 +17,7 @@ def project_media_upload_to(instance, filename):
 def evidence_upload_to(instance, filename):
     tenant_slug = instance.project.tenant.slug if instance.project_id else 'unassigned'
     return f'tenants/{tenant_slug}/evidence/{instance.project.record_id}/{filename}'
+
 
 class Tenant(models.Model):
     """One branded deployment/client in the shared platform."""
@@ -268,3 +267,28 @@ class SourcePost(models.Model):
 
     def __str__(self): return f'{self.source_platform} import #{self.pk or "new"}'
     class Meta: ordering = ['-created_at']
+
+
+class BursaryWardSummary(models.Model):
+    """Verified aggregate bursary support by ward. No individual student records."""
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='bursary_summaries')
+    ward = models.ForeignKey(Ward, on_delete=models.PROTECT, related_name='bursary_summaries')
+    reporting_period = models.CharField(max_length=40, default='2026')
+    students_supported = models.PositiveIntegerField(default=0)
+    amount_allocated = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    secondary_count = models.PositiveIntegerField(default=0)
+    college_tvet_count = models.PositiveIntegerField(default=0)
+    university_count = models.PositiveIntegerField(default=0)
+    female_count = models.PositiveIntegerField(default=0)
+    male_count = models.PositiveIntegerField(default=0)
+    notes = models.CharField(max_length=240, blank=True)
+    verified = models.BooleanField(default=False)
+    tv_enabled = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['ward__display_order', 'ward__name']
+        unique_together = [('tenant', 'ward', 'reporting_period')]
+
+    def __str__(self):
+        return f'{self.ward.name} · {self.reporting_period} · {self.students_supported} students'

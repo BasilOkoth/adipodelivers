@@ -22,6 +22,7 @@ urlpatterns = [
     path('control/projects/<int:pk>/media/<int:media_id>/delete/', views.control_project_media_delete, name='control-project-media-delete'),
     path('control/media/', views.control_media, name='control-media'),
     path('control/media/new/', views.control_media_create, name='control-media-create'),
+    path('control/bursaries/', views.control_bursaries, name='control-bursaries'),
     path('control/evidence/', views.control_evidence, name='control-evidence'),
     path('control/evidence/new/', views.control_evidence_create, name='control-evidence-create'),
     path('control/wards/', views.control_wards, name='control-wards'),

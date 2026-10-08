@@ -4,13 +4,13 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.utils.text import slugify
-from .models import Project, Ward, ProjectImpact, ProjectMedia, EvidenceDocument, SourcePost, TenantMembership
-from .forms import ProjectForm, ProjectMediaForm, ProjectMediaBatchForm, EvidenceForm, WardForm, TenantBrandForm, TenantTVSettingsForm
+from .models import Project, Ward, ProjectImpact, ProjectMedia, EvidenceDocument, SourcePost, TenantMembership, BursaryWardSummary
+from .forms import ProjectForm, ProjectMediaForm, ProjectMediaBatchForm, EvidenceForm, WardForm, TenantBrandForm, TenantTVSettingsForm, BursaryWardSummaryForm
 from .post_parser import parse_social_post
 
 
@@ -174,7 +174,6 @@ def post_to_tv_studio(request):
     })
 
 
-
 def tenant_qr(request):
     import io
     import qrcode
@@ -226,6 +225,7 @@ def tv_playlist_api(request):
             'impacts': [{'en': x.text, 'local': x.text_local} for x in p.impacts.all()],
             'url': p.get_absolute_url(), 'media': media,
         })
+
     brand = {
         'name': tenant.display_name,
         'domain': tenant.public_domain,
@@ -259,10 +259,49 @@ def tv_playlist_api(request):
         'secondary_short': tenant.secondary_language_short or tenant.secondary_language_name,
         'bilingual_enabled': tenant.bilingual_tv_enabled,
     }
+
+    bursary_qs = BursaryWardSummary.objects.filter(
+        tenant=tenant, verified=True, tv_enabled=True
+    ).select_related('ward').order_by('ward__display_order', 'ward__name')
+    totals = bursary_qs.aggregate(
+        students=Sum('students_supported'),
+        amount=Sum('amount_allocated'),
+        secondary=Sum('secondary_count'),
+        college_tvet=Sum('college_tvet_count'),
+        university=Sum('university_count'),
+        female=Sum('female_count'),
+        male=Sum('male_count'),
+    )
+    bursary_data = {
+        'students': totals['students'] or 0,
+        'amount': str(totals['amount'] or 0),
+        'secondary': totals['secondary'] or 0,
+        'college_tvet': totals['college_tvet'] or 0,
+        'university': totals['university'] or 0,
+        'female': totals['female'] or 0,
+        'male': totals['male'] or 0,
+        'wards_reached': bursary_qs.values('ward_id').distinct().count(),
+        'periods': list(bursary_qs.values_list('reporting_period', flat=True).distinct()),
+        'wards': [{
+            'ward': x.ward.name,
+            'ward_local': x.ward.name_local,
+            'period': x.reporting_period,
+            'students': x.students_supported,
+            'amount': str(x.amount_allocated or 0),
+            'secondary': x.secondary_count,
+            'college_tvet': x.college_tvet_count,
+            'university': x.university_count,
+            'female': x.female_count,
+            'male': x.male_count,
+            'note': x.notes,
+        } for x in bursary_qs],
+    }
+
     return JsonResponse({
         'tenant': tenant.slug, 'brand': brand, 'language': language,
         'wards': [{'en': w.name, 'local': w.name_local} for w in Ward.objects.filter(tenant=tenant)],
         'projects': items,
+        'bursary': bursary_data,
     })
 
 
@@ -480,7 +519,6 @@ def control_media_create(request):
         form = ProjectMediaForm(request.POST, request.FILES, tenant=request.tenant)
         if form.is_valid():
             media = form.save()
-            # Keep original S3 key available for MediaConvert when storage exposes it.
             if media.local_file and not media.original_s3_key:
                 media.original_s3_key = media.local_file.name
                 media.save(update_fields=['original_s3_key'])
@@ -489,6 +527,45 @@ def control_media_create(request):
     else:
         form = ProjectMediaForm(tenant=request.tenant)
     return render(request, 'impact/control/media_form.html', _dashboard_context(request, form=form))
+
+
+@tenant_staff_required
+@transaction.atomic
+def control_bursaries(request):
+    tenant = request.tenant
+    summaries = BursaryWardSummary.objects.filter(tenant=tenant).select_related('ward')
+    if request.method == 'POST':
+        form = BursaryWardSummaryForm(request.POST, tenant=tenant)
+        if form.is_valid():
+            cleaned = form.cleaned_data
+            defaults = {
+                k: cleaned[k] for k in [
+                    'students_supported','amount_allocated','secondary_count',
+                    'college_tvet_count','university_count','female_count','male_count',
+                    'notes','verified','tv_enabled'
+                ]
+            }
+            row, created = BursaryWardSummary.objects.update_or_create(
+                tenant=tenant,
+                ward=cleaned['ward'],
+                reporting_period=cleaned['reporting_period'],
+                defaults=defaults,
+            )
+            messages.success(request, f'Bursary figures {"created" if created else "updated"} for {row.ward.name}.')
+            return redirect('control-bursaries')
+    else:
+        form = BursaryWardSummaryForm(tenant=tenant)
+
+    verified = summaries.filter(verified=True, tv_enabled=True)
+    totals = verified.aggregate(students=Sum('students_supported'), amount=Sum('amount_allocated'))
+    return render(request, 'impact/control/bursaries.html', _dashboard_context(
+        request,
+        summaries=summaries,
+        form=form,
+        bursary_students=totals['students'] or 0,
+        bursary_amount=totals['amount'] or 0,
+        bursary_wards=verified.values('ward_id').distinct().count(),
+    ))
 
 
 @tenant_staff_required
