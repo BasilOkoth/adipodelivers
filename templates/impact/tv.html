@@ -32,6 +32,9 @@
       <div class="brand-text">
         <strong>ADIPO DELIVERS</strong>
         <small>KARACHUONYO CONSTITUENCY IMPACT</small>
+        {% if tenant.tagline %}
+          <div class="brand-slogan">{{ tenant.tagline }}</div>
+        {% endif %}
       </div>
     </div>
 
@@ -62,10 +65,15 @@
   <footer class="tv-footer">
     <div class="live-label"><span></span> IMPACT LIVE</div>
     {% if tenant.tv_show_ticker %}
-      <div class="ticker-window">
-        <div id="tickerText" class="ticker-track">
-          {{ tenant.tv_ticker_text|default:'Projects • Locations • Progress • Evidence' }}
+      <div class="ticker-zone">
+        <div class="ticker-window">
+          <div id="tickerText" class="ticker-track">
+            {{ tenant.tv_ticker_text|default:'Projects • Locations • Progress • Evidence' }}
+          </div>
         </div>
+        {% if tenant.tagline %}
+          <div class="bulletin-slogan">{{ tenant.tagline }}</div>
+        {% endif %}
       </div>
     {% endif %}
     {% if tenant.tv_show_clock %}

@@ -146,6 +146,26 @@ function splitProjectSlide(p,m,b){
   };
 }
 
+function sloganTransition(b,jurisdiction){
+  const slogan=clean(b.tagline);
+  const leader=clean(b.leader)||'Hon. Andrew Adipo Okuome';
+  return {
+    duration:4000,
+    ticker:ticker([slogan,jurisdiction]),
+    html:`<section class="slide slogan-transition">
+      <div class="slogan-glow slogan-glow-one"></div>
+      <div class="slogan-glow slogan-glow-two"></div>
+      <div class="slogan-transition-inner">
+        ${b.logo?`<div class="transition-logo-wrap"><img class="transition-logo" src="${esc(b.logo)}" alt="${esc(leader)}"></div>`:''}
+        <div class="transition-name">${esc(leader.toUpperCase())}</div>
+        <div class="transition-rule"></div>
+        <div class="transition-slogan">${esc(slogan)}</div>
+        <div class="transition-jurisdiction">${esc(jurisdiction)}</div>
+      </div>
+    </section>`
+  };
+}
+
 function build(data){
   dataCache=data;
   const b=data.brand||{};
@@ -168,6 +188,7 @@ function build(data){
         <div class="eyebrow">${esc(b.tv_intro_kicker||'KARACHUONYO CONSTITUENCY IMPACT')}</div>
         <h1>${esc(b.tv_intro_headline||'Visible projects. Clear public record.')}</h1>
         <p>${esc(trim(b.tv_intro_subheadline||'Projects, places, progress and evidence from across the constituency.',180))}</p>
+        ${b.tagline?`<div class="hero-slogan">${esc(b.tagline)}</div>`:''}
       </div>
       <div class="leader-card">
         ${portrait}
@@ -180,7 +201,7 @@ function build(data){
     </section>`
   }];
 
-  projects.forEach(p=>{
+  projects.forEach((p,projectIndex)=>{
     const images=(p.media||[]).filter(m=>m.type==='image'&&m.url);
     const videos=(p.media||[]).filter(m=>m.type==='video'&&m.url);
 
@@ -215,6 +236,10 @@ function build(data){
         </section>`
       });
     });
+
+    if(b.tagline&&(projectIndex+1)%3===0&&projectIndex<projects.length-1){
+      slides.push(sloganTransition(b,jurisdiction));
+    }
   });
 
   slides.push({
@@ -225,6 +250,7 @@ function build(data){
         <div class="eyebrow">PUBLIC IMPACT RECORD</div>
         <h2>See the project.<br>Explore the evidence.</h2>
         <p>Projects · locations · progress · photos · videos · supporting evidence</p>
+        ${b.tagline?`<div class="closing-slogan">${esc(b.tagline)}</div>`:''}
         ${b.tv_show_qr||b.tv_show_website?`<div class="closing-cta">
           ${b.tv_show_qr?`<img src="/qr/" alt="QR code">`:''}
           ${b.tv_show_website?`<div><small>SCAN OR VISIT</small><b>${esc(domain)}</b></div>`:''}
