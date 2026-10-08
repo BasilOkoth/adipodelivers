@@ -1,0 +1,78 @@
+{% extends 'impact/control/base.html' %}
+{% block title %}Bursary Impact{% endblock %}
+{% block top_title %}Education Support{% endblock %}
+{% block head %}
+<style>
+.bursary-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;margin-bottom:24px}
+.bursary-hero h2{font:800 clamp(30px,3vw,52px)/1.02 Manrope;margin:8px 0 10px;letter-spacing:-.04em}
+.bursary-hero p{max-width:760px;color:#7d8792;font-size:15px;line-height:1.55}
+.bursary-kpis{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.bursary-kpi{padding:19px;border-radius:16px;background:#fff;border:1px solid #e8ebef}
+.bursary-kpi small,.bursary-kpi strong{display:block}.bursary-kpi small{font-weight:700;color:#8c95a0;letter-spacing:.08em;text-transform:uppercase;font-size:10px}
+.bursary-kpi strong{font:800 28px Manrope;margin-top:7px;color:#16191e}
+.bursary-layout{display:grid;grid-template-columns:minmax(340px,.72fr) minmax(0,1.28fr);gap:18px;align-items:start}
+.bursary-form{padding:22px}.bursary-form h3{font:800 20px Manrope;margin:0 0 7px}.bursary-form>p{color:#7f8994;margin:0 0 18px;font-size:13px;line-height:1.5}
+.bursary-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.bursary-grid .wide{grid-column:1/-1}
+.bursary-grid label{display:block;font-size:11px;font-weight:700;color:#5f6872;margin-bottom:6px}
+.check-row{display:flex;gap:18px;flex-wrap:wrap;padding-top:4px}.check-row label{display:flex;align-items:center;gap:7px;margin:0}
+.ward-ledger{padding:0;overflow:hidden}.ward-ledger-head{padding:20px 22px;border-bottom:1px solid #e8ebef}.ward-ledger-head h3{margin:0;font:800 20px Manrope}.ward-ledger-head p{margin:5px 0 0;color:#8b949e;font-size:12px}
+.ward-row{display:grid;grid-template-columns:minmax(140px,1.2fr) .8fr 1fr .7fr;gap:14px;align-items:center;padding:15px 22px;border-bottom:1px solid #edf0f3}
+.ward-row:last-child{border-bottom:0}.ward-row b,.ward-row span,.ward-row small{display:block}.ward-row b{font:700 14px Manrope}.ward-row span{margin-top:3px;color:#8a949f;font-size:11px}
+.ward-number{font:800 20px Manrope!important;color:#171a1f!important}.verified{display:inline-flex!important;width:max-content;padding:5px 8px;border-radius:999px;background:#e8f7ee;color:#167a45!important;font-size:9px!important;font-weight:800;letter-spacing:.06em}.pending{background:#fff4de;color:#9c6b0d!important}
+.privacy-note{margin-top:18px;padding:14px 16px;border-radius:12px;background:#f8f3e9;border:1px solid #eee1c4;color:#6b6048;font-size:12px;line-height:1.5}
+@media(max-width:1050px){.bursary-layout{grid-template-columns:1fr}.bursary-hero{grid-template-columns:1fr}.bursary-kpis{grid-template-columns:1fr 1fr}.ward-row{grid-template-columns:1fr 1fr}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="bursary-hero">
+  <div>
+    <div class="eyebrow">EDUCATION SUPPORT · VERIFIED AGGREGATES</div>
+    <h2>Show the scale of bursary support<br>without exposing student records.</h2>
+    <p>Enter verified ward-level totals. TV only displays rows marked <b>Verified</b> and <b>Show on TV</b>. Re-entering the same ward and reporting period updates that record instead of creating a duplicate.</p>
+  </div>
+  <a class="btn primary large" href="{% url 'tv' %}" target="_blank">Preview Live TV ↗</a>
+</div>
+
+<div class="bursary-kpis">
+  <div class="bursary-kpi"><small>Students supported</small><strong>{{ bursary_students|default:0 }}</strong></div>
+  <div class="bursary-kpi"><small>Verified allocation</small><strong>KES {{ bursary_amount|floatformat:0|default:"0" }}</strong></div>
+  <div class="bursary-kpi"><small>Wards represented</small><strong>{{ bursary_wards|default:0 }}</strong></div>
+</div>
+
+<div class="bursary-layout">
+  <form method="post" class="panel bursary-form">{% csrf_token %}
+    <h3>Add / update ward figures</h3>
+    <p>Use one reporting period consistently, e.g. <b>FY 2026/27</b> or <b>2026</b>.</p>
+    {% if form.non_field_errors %}<div class="message error">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="bursary-grid">
+      <div class="field"><label>Ward</label>{{ form.ward }}{{ form.ward.errors }}</div>
+      <div class="field"><label>Reporting period</label>{{ form.reporting_period }}{{ form.reporting_period.errors }}</div>
+      <div class="field"><label>Students supported</label>{{ form.students_supported }}{{ form.students_supported.errors }}</div>
+      <div class="field"><label>Amount allocated (KES)</label>{{ form.amount_allocated }}{{ form.amount_allocated.errors }}</div>
+      <div class="field"><label>Secondary</label>{{ form.secondary_count }}</div>
+      <div class="field"><label>College / TVET</label>{{ form.college_tvet_count }}</div>
+      <div class="field"><label>University</label>{{ form.university_count }}</div>
+      <div class="field"><label>Female students</label>{{ form.female_count }}</div>
+      <div class="field"><label>Male students</label>{{ form.male_count }}</div>
+      <div class="field wide"><label>Short factual note (optional)</label>{{ form.notes }}</div>
+      <div class="wide check-row"><label>{{ form.verified }} Verified figures</label><label>{{ form.tv_enabled }} Show on TV</label></div>
+      <div class="wide"><button class="btn primary large">Save ward figures</button></div>
+    </div>
+    <div class="privacy-note"><b>Privacy by design:</b> this feature stores and displays aggregate counts only. Do not enter student names, admission numbers, ID numbers, fee balances, phone numbers or other personal records here.</div>
+  </form>
+
+  <div class="panel ward-ledger">
+    <div class="ward-ledger-head"><h3>Ward bursary ledger</h3><p>The TV visualisation is generated from verified rows below.</p></div>
+    {% for row in summaries %}
+    <div class="ward-row">
+      <div><b>{{ row.ward.name }}</b><span>{{ row.reporting_period }}</span></div>
+      <div><small>STUDENTS</small><span class="ward-number">{{ row.students_supported }}</span></div>
+      <div><small>ALLOCATION</small><b>{% if row.amount_allocated %}KES {{ row.amount_allocated|floatformat:0 }}{% else %}—{% endif %}</b></div>
+      <div>{% if row.verified %}<span class="verified">VERIFIED</span>{% else %}<span class="verified pending">PENDING</span>{% endif %}<span>{% if row.tv_enabled %}TV ON{% else %}TV OFF{% endif %}</span></div>
+    </div>
+    {% empty %}
+    <div class="empty-state">No bursary figures yet. Add the first ward summary using the form.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
