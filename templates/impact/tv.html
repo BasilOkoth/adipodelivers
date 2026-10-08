@@ -56,14 +56,27 @@
   <div id="soundGate" class="sound-gate" role="dialog" aria-modal="true" aria-label="Enable TV sound">
     <div class="sound-card">
       <div class="sound-icon">🔊</div>
-      <div><small>ADIPO DELIVERS TV</small><h2>Start TV with sound</h2><p>Click once to enable clear audio for project videos during this TV session.</p></div>
+      <div>
+        <small>ADIPO DELIVERS TV</small>
+        <h2>Start TV with sound</h2>
+        <p>Click once to enable clear audio for project videos during this TV session.</p>
+      </div>
       <button id="enableSoundBtn" type="button">START TV WITH SOUND</button>
     </div>
   </div>
-  <div class="sound-status" id="soundStatus"><span id="soundStatusIcon">🔇</span><span id="soundStatusText">Sound waiting</span></div>
+
+  <div class="sound-status" id="soundStatus">
+    <span id="soundStatusIcon">🔇</span>
+    <span id="soundStatusText">Sound waiting</span>
+  </div>
 
   <footer class="tv-footer">
-    <div class="live-label"><span></span> IMPACT LIVE</div>
+    <div class="live-label">
+      <span class="live-dot"></span>
+      <span class="live-copy">IMPACT LIVE</span>
+      <span class="live-sweep" aria-hidden="true"></span>
+    </div>
+
     {% if tenant.tv_show_ticker %}
       <div class="ticker-zone">
         <div class="ticker-window">
@@ -71,11 +84,9 @@
             {{ tenant.tv_ticker_text|default:'Projects • Locations • Progress • Evidence' }}
           </div>
         </div>
-        {% if tenant.tagline %}
-          <div class="bulletin-slogan">{{ tenant.tagline }}</div>
-        {% endif %}
       </div>
     {% endif %}
+
     {% if tenant.tv_show_clock %}
       <div class="footer-clock">
         <strong id="clock"></strong>

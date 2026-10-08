@@ -114,12 +114,84 @@ html,body{
 .closing-cta b{margin-top:5px;font:800 30px Manrope}
 
 .tv-footer{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;background:#07090d;border-top:2px solid var(--accent)}
-.live-label{align-self:stretch;display:flex;align-items:center;gap:10px;padding:0 24px;background:linear-gradient(135deg,#cf171f,#a60e15);font:900 15px Manrope;letter-spacing:.07em}
-.live-label span{width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.08)}
-.ticker-zone{min-width:0;height:100%;display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:center;overflow:hidden}
+.live-label{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  min-width:188px;
+  align-self:stretch;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:11px;
+  padding:0 24px;
+  background:
+    linear-gradient(135deg,#cf171f 0%,#9f0c13 58%,#71070d 100%);
+  font:900 15px Manrope;
+  letter-spacing:.085em;
+  box-shadow:
+    inset -1px 0 0 rgba(255,255,255,.10),
+    10px 0 28px rgba(207,23,31,.10);
+}
+.live-label::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 24% 50%,rgba(255,255,255,.18),transparent 24%),
+    linear-gradient(100deg,transparent 16%,rgba(255,255,255,.13) 46%,transparent 72%);
+  transform:translateX(-105%);
+  animation:impactLiveSweep 3.8s ease-in-out infinite;
+}
+.live-dot{
+  width:10px;
+  height:10px;
+  flex:0 0 10px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:
+    0 0 0 5px rgba(255,255,255,.10),
+    0 0 18px rgba(255,255,255,.60);
+  animation:impactLivePulse 1.65s ease-in-out infinite;
+}
+.live-copy{
+  position:relative;
+  display:inline-block;
+  text-shadow:0 2px 10px rgba(0,0,0,.22);
+  animation:impactLiveLift 3.2s ease-in-out infinite;
+}
+.live-sweep{
+  position:absolute;
+  right:12px;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--gold);
+  opacity:.8;
+  box-shadow:0 0 11px rgba(230,189,102,.85);
+  animation:impactLiveOrbit 2.8s ease-in-out infinite;
+}
+@keyframes impactLivePulse{
+  0%,100%{transform:scale(.92);opacity:.78}
+  50%{transform:scale(1.18);opacity:1}
+}
+@keyframes impactLiveLift{
+  0%,100%{transform:translateY(0);letter-spacing:.085em}
+  50%{transform:translateY(-1px);letter-spacing:.105em}
+}
+@keyframes impactLiveSweep{
+  0%,58%{transform:translateX(-105%);opacity:0}
+  68%{opacity:1}
+  100%{transform:translateX(105%);opacity:0}
+}
+@keyframes impactLiveOrbit{
+  0%,100%{transform:translate(0,9px);opacity:.40}
+  50%{transform:translate(0,-9px);opacity:1}
+}
+.ticker-zone{min-width:0;height:100%;display:grid;grid-template-rows:1fr;align-items:center;overflow:hidden}
 .ticker-window{min-width:0;overflow:hidden;white-space:nowrap;padding:0 18px;display:flex;align-items:center}
 .ticker-track{display:inline-block;font-size:16px;font-weight:700;animation:ticker 34s linear infinite}
-.bulletin-slogan{min-height:20px;padding:3px 18px 6px;color:var(--gold);border-top:1px solid rgba(255,255,255,.07);font:900 11px/1 Manrope;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:sloganGlow 4s ease-in-out infinite}
 @keyframes ticker{from{transform:translateX(72vw)}to{transform:translateX(-100%)}}
 @keyframes sloganGlow{0%,100%{opacity:.72}50%{opacity:1}}
 .footer-clock{min-width:150px;align-self:stretch;background:linear-gradient(135deg,#efc25c,#d7a12e);color:#121417;display:grid;place-items:center;align-content:center;padding:0 22px}
@@ -184,8 +256,9 @@ html,body{
 /* PROJECT LEADER BADGE — CHUNG E TIE GIRI */
 .project-leader-badge{
   position:absolute;
+  top:24px;
   right:24px;
-  bottom:28px;
+  bottom:auto;
   width:154px;
   height:154px;
   z-index:10;
@@ -246,6 +319,21 @@ html,body{
   box-shadow:0 0 26px rgba(230,189,102,.10);
   pointer-events:none;
 }
+
+.project-leader-badge::after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle,
+      rgba(5,8,12,.56) 0%,
+      rgba(5,8,12,.36) 56%,
+      rgba(5,8,12,0) 74%);
+  z-index:-1;
+  pointer-events:none;
+}
+
 @keyframes leaderRingSpin{
   from{transform:rotate(0deg)}
   to{transform:rotate(360deg)}
@@ -269,7 +357,6 @@ html,body{
   .detail-row{grid-template-columns:22px 92px minmax(0,1fr);padding:9px 0}
   .detail-label,.detail-value{font-size:13px}
   .hero-slide{padding:24px 28px}
-  .bulletin-slogan{font-size:9px;padding-bottom:4px}
   .bursary-overview{padding:24px 28px;grid-template-columns:minmax(0,.9fr) minmax(440px,1.1fr)}
   .bursary-big-card{min-height:190px;padding:18px}
   .ward-bursary-row{grid-template-columns:36px minmax(130px,.8fr) minmax(200px,1.6fr) 100px 110px;gap:10px;padding:9px 11px}
@@ -277,8 +364,9 @@ html,body{
   .project-leader-badge{
     width:126px;
     height:126px;
+    top:18px;
     right:18px;
-    bottom:22px;
+    bottom:auto;
   }
   .project-leader-photo{
     width:82px;
