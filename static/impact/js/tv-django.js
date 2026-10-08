@@ -102,6 +102,37 @@ function projectDetails(p){
   return rows.slice(0,4);
 }
 
+
+function leaderProjectBadge(b,key='project'){
+  if(!b.leader_photo)return '';
+
+  const safeKey=String(key||'project').replace(/[^a-zA-Z0-9_-]/g,'');
+  const pathId=`leader-ring-${safeKey}`;
+  const leader=clean(b.leader)||'Adipo Okuome';
+
+  return `
+    <div class="project-leader-badge">
+      <svg class="project-leader-ring" viewBox="0 0 220 220" aria-hidden="true">
+        <defs>
+          <path
+            id="${pathId}"
+            d="M110,110 m-84,0 a84,84 0 1,1 168,0 a84,84 0 1,1 -168,0"
+          />
+        </defs>
+        <text>
+          <textPath href="#${pathId}" startOffset="0%">
+            CHUNG E TIE GIRI • CHUNG E TIE GIRI •
+          </textPath>
+        </text>
+      </svg>
+
+      <div class="project-leader-photo">
+        <img src="${esc(b.leader_photo)}" alt="${esc(leader)}">
+      </div>
+    </div>
+  `;
+}
+
 function splitProjectSlide(p,m,b){
   const details=projectDetails(p);
   return {
@@ -114,6 +145,7 @@ function splitProjectSlide(p,m,b){
           <img src="${esc(m.url)}" alt="${esc(m.title||p.short_title)}" onload="fitProjectPhoto(this)" data-fit="cover">
         </div>
         <div class="project-photo-shade"></div>
+        ${leaderProjectBadge(b,`photo-${m.id||p.id}`)}
         <div class="photo-label">${esc(wardLabel(p))}</div>
       </div>
 
@@ -287,6 +319,7 @@ function build(data){
             <video class="project-video" playsinline preload="auto" ${poster?`poster="${esc(poster)}"`:''}>
               <source src="${esc(m.url)}" type="video/mp4">
             </video>
+            ${leaderProjectBadge(b,`video-${m.id||p.id}`)}
             <div class="video-audio-badge">FULL AUDIO</div>
           </div>
           <div class="project-info-panel">

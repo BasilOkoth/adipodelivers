@@ -180,6 +180,81 @@ html,body{
 .ward-bursary-money{text-align:right;font:800 13px Manrope;color:var(--gold)}
 .bursary-footnote{text-align:right;color:#6f7b86;font:700 10px Inter;letter-spacing:.08em;text-transform:uppercase}
 
+
+/* PROJECT LEADER BADGE — CHUNG E TIE GIRI */
+.project-leader-badge{
+  position:absolute;
+  right:24px;
+  bottom:28px;
+  width:154px;
+  height:154px;
+  z-index:10;
+  animation:leaderBadgeFloat 4.8s ease-in-out infinite;
+  filter:drop-shadow(0 14px 28px rgba(0,0,0,.42));
+}
+.project-leader-ring{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  animation:leaderRingSpin 17s linear infinite;
+}
+.project-leader-ring text{
+  fill:#f0cc78;
+  font-family:Manrope,Inter,sans-serif;
+  font-size:12.8px;
+  font-weight:900;
+  letter-spacing:1.55px;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+.project-leader-photo{
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:27px;
+  top:27px;
+  border-radius:50%;
+  overflow:hidden;
+  background:#080b10;
+  border:4px solid #fff;
+  box-shadow:
+    0 0 0 4px rgba(214,31,38,.78),
+    0 12px 32px rgba(0,0,0,.52);
+}
+.project-leader-photo::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  box-shadow:inset 0 -18px 28px rgba(0,0,0,.16);
+  pointer-events:none;
+}
+.project-leader-photo img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center 12%;
+}
+.project-leader-badge::before{
+  content:"";
+  position:absolute;
+  inset:18px;
+  border-radius:50%;
+  border:1px solid rgba(230,189,102,.26);
+  box-shadow:0 0 26px rgba(230,189,102,.10);
+  pointer-events:none;
+}
+@keyframes leaderRingSpin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes leaderBadgeFloat{
+  0%,100%{transform:translateY(0) rotate(-1deg)}
+  50%{transform:translateY(-7px) rotate(1.5deg)}
+}
+
 @media(max-width:1280px){
   .tv-shell{grid-template-rows:82px minmax(0,1fr) 62px}
   .tv-header{padding:0 18px}
@@ -198,4 +273,19 @@ html,body{
   .bursary-overview{padding:24px 28px;grid-template-columns:minmax(0,.9fr) minmax(440px,1.1fr)}
   .bursary-big-card{min-height:190px;padding:18px}
   .ward-bursary-row{grid-template-columns:36px minmax(130px,.8fr) minmax(200px,1.6fr) 100px 110px;gap:10px;padding:9px 11px}
+
+  .project-leader-badge{
+    width:126px;
+    height:126px;
+    right:18px;
+    bottom:22px;
+  }
+  .project-leader-photo{
+    width:82px;
+    height:82px;
+    left:22px;
+    top:22px;
+  }
+  .project-leader-ring text{font-size:11px}
+
 }
